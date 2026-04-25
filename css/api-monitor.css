@@ -3,6 +3,7 @@
     position: fixed;
     right: 20px;
     bottom: 90px;
+    touch-action: none;
     width: 42px;
     height: 42px;
     border-radius: 50%;
@@ -147,7 +148,7 @@
 .timer-orb {
     position:fixed; right:16px; bottom:145px; z-index:9001; cursor:pointer;
     transition:all 0.4s cubic-bezier(0.4,0,0.2,1);
-    display:none;
+    display:none; touch-action:none;
 }
 .timer-orb.visible { display:block; }
 .timer-orb:active { transform:scale(0.9); }
