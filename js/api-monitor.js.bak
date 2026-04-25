@@ -109,21 +109,17 @@ let amTimerCurrentSource = '';
 let amTimerCurrentModel = '';
 const amOrbCircum = 2 * Math.PI * 22.5;
 
-let _tpCanClose = false;
-
 function openTimerPanel() {
     const overlay = document.getElementById('tpOverlay');
     if (!overlay || overlay.classList.contains('active')) return;
-    _tpCanClose = false;
+    _tpOpenTime = Date.now();
     overlay.classList.add('active');
-    setTimeout(() => { _tpCanClose = true; }, 600);
 }
 
-function closeTimerPanel() {
-    if (!_tpCanClose) return;
+function closeTimerPanel(force) {
+    if (!force && Date.now() - _tpOpenTime < 600) return;
     const overlay = document.getElementById('tpOverlay');
     if (overlay) overlay.classList.remove('active');
-    _tpCanClose = false;
 }
 
 // API 调用开始时自动调用：每次从 0 重新计时
@@ -390,23 +386,22 @@ function toggleAmEnabled(isOn) {
     updateAmFabVisibility();
 }
 
-let _amCanClose = false;
+let _amOpenTime = 0;
+let _tpOpenTime = 0;
 
 function openApiMonitor() {
     const overlay = document.getElementById('apiMonitorOverlay');
     if (!overlay || overlay.classList.contains('active')) return;
-    _amCanClose = false;
+    _amOpenTime = Date.now();
     overlay.classList.add('active');
     renderAmStats();
     renderAmLogs();
-    setTimeout(() => { _amCanClose = true; }, 600);
 }
 
-function closeApiMonitor() {
-    if (!_amCanClose) return;
+function closeApiMonitor(force) {
+    if (!force && Date.now() - _amOpenTime < 600) return;
     const overlay = document.getElementById('apiMonitorOverlay');
     if (overlay) overlay.classList.remove('active');
-    _amCanClose = false;
 }
 
 // ===== 记录 API 调用 =====
@@ -582,4 +577,34 @@ function exportAmLogs() {
     navigator.clipboard.writeText(text).then(() => alert('Logs copied to clipboard'));
 }
 
-// （已删除，逻辑合并到 closeApiMonitor / closeTimerPanel 的 _canClose 标志位中）
+// ===== 遮罩层安全关闭（防穿透）=====
+(function() {
+    function bindOverlay(overlayId, closeFn, openTimeGetter) {
+        const el = document.getElementById(overlayId);
+        if (!el) return;
+
+        el.addEventListener('touchend', function(e) {
+            if (e.target !== el) return;
+            if (Date.now() - openTimeGetter() < 600) return;
+            e.preventDefault();
+            closeFn();
+        });
+
+        el.addEventListener('click', function(e) {
+            if (e.target !== el) return;
+            if (Date.now() - openTimeGetter() < 600) return;
+            closeFn();
+        });
+    }
+
+    function setup() {
+        bindOverlay('apiMonitorOverlay', closeApiMonitor, () => _amOpenTime);
+        bindOverlay('tpOverlay', closeTimerPanel, () => _tpOpenTime);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setup);
+    } else {
+        setTimeout(setup, 200);
+    }
+})();

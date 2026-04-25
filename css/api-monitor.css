@@ -52,9 +52,7 @@
 .api-monitor-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.6);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: rgba(0,0,0,0.65);
     z-index: 9500;
     opacity: 0;
     pointer-events: none;
@@ -185,8 +183,8 @@
 
 /* ===== 计时器面板（深色） ===== */
 .timer-panel-overlay {
-    position:fixed; inset:0; background:rgba(0,0,0,0.4); backdrop-filter:blur(8px);
-    -webkit-backdrop-filter:blur(8px); z-index:9500; opacity:0; pointer-events:none; transition:opacity 0.3s;
+    position:fixed; inset:0; background:rgba(0,0,0,0.5);
+    z-index:9500; opacity:0; pointer-events:none; transition:opacity 0.3s;
 }
 .timer-panel-overlay.active { opacity:1; pointer-events:auto; }
 

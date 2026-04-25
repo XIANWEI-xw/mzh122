@@ -1507,7 +1507,7 @@
 
     <!-- 计时悬浮球 -->
     <div class="orb-connector" id="orbConnector"></div>
-    <div class="timer-orb" id="timerOrb" onclick="if(!window._orbDragged){event.stopPropagation();toggleTimerPanel()}">
+    <div class="timer-orb" id="timerOrb">
         <div class="timer-orb-ring">
             <svg class="timer-orb-svg" viewBox="0 0 50 50">
                 <circle class="timer-orb-track" cx="25" cy="25" r="22.5"/>
@@ -1522,12 +1522,12 @@
     </div>
 
     <!-- 计时器面板 -->
-    <div class="timer-panel-overlay" id="tpOverlay" onclick="toggleTimerPanel()">
+    <div class="timer-panel-overlay" id="tpOverlay" onclick="closeTimerPanel()">
         <div class="timer-panel" onclick="event.stopPropagation()">
             <div class="tp-topline"></div>
             <div class="tp-header">
                 <div class="tp-title">Timer.</div>
-                <button class="tp-close" onclick="toggleTimerPanel()">×</button>
+                <button class="tp-close" onclick="_tpCanClose=true;closeTimerPanel()">×</button>
             </div>
             <div class="tp-display">
                 <div class="tp-time" id="tpTime">00:00</div>
@@ -1561,13 +1561,13 @@
     </div>
 
     <!-- API Monitor 悬浮球 -->
-    <div class="api-fab" id="apiFab" onclick="if(!window._orbDragged){event.stopPropagation();toggleApiMonitor()}">
+    <div class="api-fab" id="apiFab">
         <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
         <div class="api-fab-badge" id="amFabBadge"></div>
     </div>
 
     <!-- API Monitor 面板 -->
-    <div class="api-monitor-overlay" id="apiMonitorOverlay" onclick="toggleApiMonitor()">
+    <div class="api-monitor-overlay" id="apiMonitorOverlay" onclick="closeApiMonitor()">
         <div class="api-monitor" onclick="event.stopPropagation()">
             <div class="am-topline"></div>
             <div class="am-drag"></div>
@@ -1576,7 +1576,7 @@
                     <div class="am-title">Monitor.</div>
                     <div class="am-subtitle">API Usage & Diagnostics</div>
                 </div>
-                <button class="am-close" onclick="toggleApiMonitor()">×</button>
+                <button class="am-close" onclick="_amCanClose=true;closeApiMonitor()">×</button>
             </div>
             <div class="am-stats">
                 <div class="am-stat">
