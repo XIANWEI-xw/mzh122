@@ -263,11 +263,7 @@ function closeEncounter() {
 function renderEncCharacterCards() {
     const list = document.getElementById('enc-dir-list');
     if (!list) return;
-    list.style.display = '';
-    const footer = document.querySelector('#enc-selection-screen .enc-dir-footer');
-    if (footer) footer.style.display = '';
-    const archiveView = document.getElementById('encArchiveView');
-    if (archiveView) archiveView.style.display = 'none';
+    closeEncArchive();
     list.innerHTML = '';
 
     const allContacts = getEncContacts();
@@ -1394,20 +1390,22 @@ function addEncNewPreset(btnEl) {
 })();
 
 function openEncArchive() {
-    document.getElementById('enc-dir-list').style.display = 'none';
+    const list = document.getElementById('enc-dir-list');
     const footer = document.querySelector('#enc-selection-screen .enc-dir-footer');
-    if (footer) footer.style.display = 'none';
     const view = document.getElementById('encArchiveView');
+    if (list) list.style.display = 'none';
+    if (footer) footer.style.display = 'none';
     if (view) view.style.display = 'flex';
     showEncArchiveToast('ARCHIVE MODE');
     renderEncArchive();
 }
 
 function closeEncArchive() {
-    document.getElementById('enc-dir-list').style.display = '';
+    const list = document.getElementById('enc-dir-list');
     const footer = document.querySelector('#enc-selection-screen .enc-dir-footer');
-    if (footer) footer.style.display = '';
     const view = document.getElementById('encArchiveView');
+    if (list) list.style.display = '';
+    if (footer) footer.style.display = '';
     if (view) view.style.display = 'none';
 }
 

@@ -1656,7 +1656,7 @@ textarea.enc-qm-input { min-height: 50px; line-height: 1.6; }
 #encSecretEntry.hint::after { transform:scaleX(1); }
 
 .enc-archive-view {
-    display:none; flex-direction:column; flex:1; overflow-y:auto;
+    display:none; flex-direction:column; overflow-y:auto;
     animation:encArchiveFadeIn 0.4s ease;
 }
 @keyframes encArchiveFadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
