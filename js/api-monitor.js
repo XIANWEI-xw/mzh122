@@ -16,6 +16,78 @@ function updateAmFabVisibility() {
     }
 }
 
+// ===== 安全拖动系统（仅触摸，不污染全局）=====
+function makeOrbDraggable(el, tapCallback) {
+    if (!el) return;
+    let sx, sy, ox, oy, moved;
+
+    el.addEventListener('touchstart', function(e) {
+        if (e.touches.length !== 1) return;
+        const t = e.touches[0];
+        sx = t.clientX; sy = t.clientY;
+        const r = el.getBoundingClientRect();
+        ox = r.left; oy = r.top;
+        moved = false;
+        el.style.transition = 'none';
+
+        function onMove(ev) {
+            const m = ev.touches[0];
+            const dx = m.clientX - sx;
+            const dy = m.clientY - sy;
+            if (Math.abs(dx) > 6 || Math.abs(dy) > 6) moved = true;
+            if (!moved) return;
+            if (ev.cancelable) ev.preventDefault();
+            const nx = Math.max(0, Math.min(window.innerWidth - el.offsetWidth, ox + dx));
+            const ny = Math.max(0, Math.min(window.innerHeight - el.offsetHeight, oy + dy));
+            el.style.left = nx + 'px';
+            el.style.top = ny + 'px';
+            el.style.right = 'auto';
+            el.style.bottom = 'auto';
+        }
+
+        function onEnd() {
+            document.removeEventListener('touchmove', onMove);
+            document.removeEventListener('touchend', onEnd);
+            el.style.transition = '';
+            if (!moved) {
+                if (tapCallback) tapCallback();
+            } else {
+                // 吸附到最近的边
+                const rect = el.getBoundingClientRect();
+                const cx = rect.left + rect.width / 2;
+                el.style.transition = 'left 0.3s cubic-bezier(0.16,1,0.3,1)';
+                if (cx < window.innerWidth / 2) {
+                    el.style.left = '12px';
+                } else {
+                    el.style.left = (window.innerWidth - el.offsetWidth - 12) + 'px';
+                }
+                setTimeout(() => { el.style.transition = ''; }, 350);
+            }
+        }
+
+        document.addEventListener('touchmove', onMove, { passive: false });
+        document.addEventListener('touchend', onEnd, { once: false });
+    }, { passive: true });
+
+    // 桌面端点击也要响应
+    el.addEventListener('click', function(e) {
+        if (!moved && tapCallback) tapCallback();
+    });
+}
+
+// 页面就绪后绑定
+(function() {
+    function setup() {
+        makeOrbDraggable(document.getElementById('apiFab'), toggleApiMonitor);
+        makeOrbDraggable(document.getElementById('timerOrb'), toggleTimerPanel);
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setup);
+    } else {
+        setTimeout(setup, 200);
+    }
+})();
+
 // ===== 计时器系统 =====
 let amTimerRunning = false;
 let amTimerStart = 0;
