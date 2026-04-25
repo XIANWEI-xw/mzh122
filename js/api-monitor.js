@@ -62,7 +62,12 @@ function makeOrbDraggable(el) {
                 } else {
                     el.style.left = (window.innerWidth - el.offsetWidth - 12) + 'px';
                 }
-                setTimeout(() => { el.style.transition = ''; }, 350);
+                setTimeout(() => {
+                    el.style.transition = '';
+                    window._orbDragged = false;
+                }, 400);
+            } else {
+                window._orbDragged = false;
             }
         }
 
@@ -97,7 +102,13 @@ const amOrbCircum = 2 * Math.PI * 22.5;
 
 function toggleTimerPanel() {
     const overlay = document.getElementById('tpOverlay');
-    if (overlay) overlay.classList.toggle('active');
+    if (!overlay) return;
+    const isOpening = !overlay.classList.contains('active');
+    overlay.classList.toggle('active');
+    if (isOpening) {
+        overlay.style.pointerEvents = 'none';
+        setTimeout(() => { overlay.style.pointerEvents = ''; }, 400);
+    }
 }
 
 // API 调用开始时自动调用：每次从 0 重新计时
@@ -366,12 +377,14 @@ function toggleAmEnabled(isOn) {
 
 function toggleApiMonitor() {
     const overlay = document.getElementById('apiMonitorOverlay');
-    if (overlay) {
-        overlay.classList.toggle('active');
-        if (overlay.classList.contains('active')) {
-            renderAmStats();
-            renderAmLogs();
-        }
+    if (!overlay) return;
+    const isOpening = !overlay.classList.contains('active');
+    overlay.classList.toggle('active');
+    if (isOpening) {
+        overlay.style.pointerEvents = 'none';
+        setTimeout(() => { overlay.style.pointerEvents = ''; }, 400);
+        renderAmStats();
+        renderAmLogs();
     }
 }
 
