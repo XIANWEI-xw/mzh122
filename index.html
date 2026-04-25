@@ -1181,7 +1181,7 @@
             </div>
 
             <!-- 设置面板 -->
-            <div class="enc-settings-overlay" id="enc-settings-overlay" onclick="closeEncSettings(event)">
+            <div class="enc-settings-overlay" id="enc-settings-overlay" onclick="closeEncSettingsPanel()">
                 <div class="enc-settings-panel" onclick="event.stopPropagation()">
                     <div class="enc-set-top-bar"></div>
                     <div class="enc-set-drag-handle"></div>
@@ -1190,7 +1190,7 @@
                             <div class="enc-set-title">Settings</div>
                             <div class="enc-set-title-sub">System Configuration</div>
                         </div>
-                        <button class="enc-btn-close-set" onclick="toggleEncSettings()">×</button>
+                        <button class="enc-btn-close-set" onclick="_encSetCanClose=true;closeEncSettingsPanel()">×</button>
                     </div>
                     <div class="enc-set-content">
                         <div class="enc-set-item">

@@ -1082,22 +1082,36 @@ function handleEncFabClick(e) {
     }
 }
 
+let _encSetCanClose = false;
+
 function toggleEncSettings() {
-    if (encSettingsOverlay.classList.toggle('active')) {
-        clearTimeout(encFabTimeout);
-        encFabSettings.classList.remove('enc-fab-watermark');
+    if (encSettingsOverlay.classList.contains('active')) {
+        _encSetCanClose = true;
+        closeEncSettingsPanel();
     } else {
-        saveEncSettings();
-        encFabSettings.classList.add('enc-fab-watermark');
+        openEncSettings();
     }
 }
 
-function closeEncSettings(e) {
-    if (e.target === encSettingsOverlay) {
-        saveEncSettings();
-        encSettingsOverlay.classList.remove('active');
-        encFabSettings.classList.add('enc-fab-watermark');
-    }
+function openEncSettings() {
+    if (encSettingsOverlay.classList.contains('active')) return;
+    _encSetCanClose = false;
+    encSettingsOverlay.classList.add('active');
+    clearTimeout(encFabTimeout);
+    encFabSettings.classList.remove('enc-fab-watermark');
+    setTimeout(() => { _encSetCanClose = true; }, 600);
+}
+
+function forceCloseEncSettings() {
+    saveEncSettings();
+    encSettingsOverlay.classList.remove('active');
+    encFabSettings.classList.add('enc-fab-watermark');
+    _encSetCanClose = false;
+}
+
+function closeEncSettingsPanel() {
+    if (!_encSetCanClose) return;
+    forceCloseEncSettings();
 }
 
 // 设置按钮组交互 → 已移入 initEncounterDOM()

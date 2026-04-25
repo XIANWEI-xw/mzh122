@@ -1145,12 +1145,13 @@ textarea.enc-qm-input { min-height: 50px; line-height: 1.6; }
 .enc-settings-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(var(--enc-shadow),.45);
-    backdrop-filter: blur(10px);
+    background: rgba(0,0,0,0.55);
     z-index: 1000;
     opacity: 0;
     pointer-events: none;
     transition: opacity .3s ease;
+    will-change: opacity;
+    transform: translateZ(0);
 }
 .enc-settings-overlay.active { opacity: 1; pointer-events: auto; }
 
@@ -1164,8 +1165,8 @@ textarea.enc-qm-input { min-height: 50px; line-height: 1.6; }
     padding: 0 0 50px;
     transform: translateY(100%);
     transition: transform .4s cubic-bezier(.16,1,.3,1);
-    box-shadow: 0 -20px 60px rgba(var(--enc-shadow),.6);
     overflow: hidden;
+    will-change: transform;
 }
 .enc-settings-overlay.active .enc-settings-panel { transform: translateY(0); }
 
