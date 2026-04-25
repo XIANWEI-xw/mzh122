@@ -559,6 +559,7 @@ function generateEncAIResponse() {
                     <div class="enc-msg-actions">
                         <button class="enc-msg-action-btn" onclick="editEncBlock(this)">Edit</button>
                         <button class="enc-msg-action-btn" onclick="redoEncBlock(this)">Regenerate</button>
+                        <button class="enc-msg-action-btn" onclick="deleteEncBlock(this)">Del</button>
                     </div>
                 </div>
             `);
@@ -815,6 +816,7 @@ async function callEncAI(apiUrl, apiToken, apiModel) {
     if (typeof amSetCalling === 'function') amSetCalling(true, 'Encounter', apiModel);
 
     try {
+        const abortCtrl = typeof createApiAbort === 'function' ? createApiAbort() : null;
         const response = await fetch(`${apiUrl.replace(/\/+$/, '')}/chat/completions`, {
             method: 'POST',
             headers: {
@@ -826,7 +828,8 @@ async function callEncAI(apiUrl, apiToken, apiModel) {
                 messages: apiMessages,
                 temperature: temperature,
                 max_tokens: Math.max(wordLimit * 3, 1500)
-            })
+            }),
+            signal: abortCtrl ? abortCtrl.signal : undefined
         });
 
         removeEncLoadingBlock();
@@ -878,6 +881,7 @@ async function callEncAI(apiUrl, apiToken, apiModel) {
                     <div class="enc-msg-actions">
                         <button class="enc-msg-action-btn" onclick="editEncBlock(this)">Edit</button>
                         <button class="enc-msg-action-btn" onclick="redoEncBlock(this)">Regenerate</button>
+                        <button class="enc-msg-action-btn" onclick="deleteEncBlock(this)">Del</button>
                     </div>
                 </div>
             `);
@@ -892,6 +896,20 @@ async function callEncAI(apiUrl, apiToken, apiModel) {
         console.error('Encounter AI error:', e);
         removeEncLoadingBlock();
         if (typeof amSetCalling === 'function') amSetCalling(false, 'Encounter', apiModel);
+
+        if (e.name === 'AbortError') {
+            encProseContainer.insertAdjacentHTML('beforeend', `
+                <div class="enc-prose-divider">· · ·</div>
+                <div class="enc-story-block ai-block">
+                    <p style="color:var(--enc-text-muted);font-style:italic;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:middle;margin-right:4px;opacity:0.4"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>Request aborted</p>
+                    <div class="enc-msg-actions">
+                        <button class="enc-msg-action-btn" onclick="redoEncBlock(this)">Retry</button>
+                    </div>
+                </div>
+            `);
+            return;
+        }
+
         if (typeof logApiCall === 'function') {
             logApiCall({
                 model: apiModel, source: 'Encounter', status: 0, statusText: 'Network Error',

@@ -687,3 +687,255 @@ function exitEditMode() {
     isEditMode = false;
     document.body.classList.remove('edit-mode');
 }
+// ===== Data Vault 备份/恢复系统 =====
+let _bkFileData = null;
+
+// 拖拽支持
+document.addEventListener('DOMContentLoaded', function() {
+    const dz = document.getElementById('bkDropZone');
+    if (!dz) return;
+    dz.addEventListener('dragover', function(e) { e.preventDefault(); dz.classList.add('dragover'); });
+    dz.addEventListener('dragleave', function() { dz.classList.remove('dragover'); });
+    dz.addEventListener('drop', function(e) {
+        e.preventDefault(); dz.classList.remove('dragover');
+        if (e.dataTransfer.files[0]) backupProcessFile(e.dataTransfer.files[0]);
+    });
+});
+
+function backupHandleFile(event) {
+    var file = event.target.files[0];
+    if (file) backupProcessFile(file);
+    event.target.value = '';
+}
+
+function backupProcessFile(file) {
+    if (!file.name.endsWith('.json')) { showBackupToast('Only .json files', 'error'); return; }
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            JSON.parse(e.target.result);
+            _bkFileData = e.target.result;
+            document.getElementById('bkFileName').textContent = file.name;
+            document.getElementById('bkFileSize').textContent = backupFormatSize(file.size);
+            document.getElementById('bkFileInfo').classList.add('show');
+            document.getElementById('bkDropZone').classList.add('has-file');
+            document.getElementById('bkClipboardInput').value = '';
+            showBackupToast('FILE LOADED', 'success');
+        } catch(err) { showBackupToast('Invalid JSON', 'error'); }
+    };
+    reader.readAsText(file);
+}
+
+function backupClearFile() {
+    _bkFileData = null;
+    document.getElementById('bkFileInfo').classList.remove('show');
+    document.getElementById('bkDropZone').classList.remove('has-file');
+}
+
+function backupClearImport() {
+    backupClearFile();
+    document.getElementById('bkClipboardInput').value = '';
+}
+
+function backupFormatSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(1) + ' MB';
+}
+
+// 收集所有数据
+async function backupBuildData() {
+    var data = {
+        version: '1.0',
+        timestamp: new Date().toISOString(),
+        app: 'StudioZero'
+    };
+
+    // WeChat 数据
+    if (typeof wcContacts !== 'undefined') data.wcContacts = wcContacts;
+    if (typeof wcChats !== 'undefined') data.wcChats = wcChats;
+    if (typeof chatMessages !== 'undefined') data.chatMessages = chatMessages;
+
+    // 面具
+    if (typeof userMasks !== 'undefined') data.userMasks = userMasks;
+
+    // 设置
+    data.systemSettings = JSON.parse(localStorage.getItem('systemSettings') || '{}');
+    data.wcMeName = localStorage.getItem('wcMeName') || '';
+    data.wcMeBio = localStorage.getItem('wcMeBio') || '';
+    data.wcMeAvatar = localStorage.getItem('wcMeAvatar') || '';
+
+    // Encounter 设置
+    data.encSettings = localStorage.getItem('encSettings') || '';
+    data.encPersonaPresets = localStorage.getItem('encPersonaPresets') || '';
+
+    // Encounter 故事 (从 IndexedDB)
+    if (typeof getEncContacts === 'function' && typeof loadEncStory === 'function') {
+        var contacts = getEncContacts();
+        var stories = {};
+        for (var i = 0; i < contacts.length; i++) {
+            var story = await loadEncStory(contacts[i].name);
+            if (story) stories[contacts[i].name] = story;
+        }
+        data.encStories = stories;
+    }
+
+    // 世界书
+    var wbData = localStorage.getItem('worldbookEntries');
+    if (wbData) data.worldbookEntries = wbData;
+
+    // 认知记忆
+    var cogKeys = [];
+    for (var k = 0; k < localStorage.length; k++) {
+        var key = localStorage.key(k);
+        if (key && key.startsWith('cogMemories_')) {
+            cogKeys.push({ key: key, value: localStorage.getItem(key) });
+        }
+    }
+    if (cogKeys.length > 0) data.cognitionData = cogKeys;
+
+    // API Monitor 日志
+    if (typeof amDbGet === 'function') {
+        var amLogs = await amDbGet('amLogs');
+        var amTotals = await amDbGet('amTotals');
+        if (amLogs) data.amLogs = amLogs;
+        if (amTotals) data.amTotals = amTotals;
+    }
+
+    return data;
+}
+
+// 更新统计数字
+async function backupUpdateStats() {
+    var el1 = document.getElementById('bkStatContacts');
+    var el2 = document.getElementById('bkStatMessages');
+    var el3 = document.getElementById('bkStatStories');
+    if (!el1) return;
+
+    el1.textContent = (typeof wcContacts !== 'undefined') ? wcContacts.length : 0;
+
+    var msgCount = 0;
+    if (typeof chatMessages !== 'undefined') {
+        Object.keys(chatMessages).forEach(function(k) { msgCount += chatMessages[k].length; });
+    }
+    el2.textContent = msgCount;
+
+    var storyCount = 0;
+    if (typeof getEncContacts === 'function' && typeof loadEncStory === 'function') {
+        var contacts = getEncContacts();
+        for (var i = 0; i < contacts.length; i++) {
+            var s = await loadEncStory(contacts[i].name);
+            if (s && s.trim()) storyCount++;
+        }
+    }
+    el3.textContent = storyCount;
+}
+
+// 导出为文件下载
+async function backupExportFile() {
+    var data = await backupBuildData();
+    var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'studio-zero-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    showBackupToast('BACKUP DOWNLOADED', 'success');
+}
+
+// 导出到剪贴板
+async function backupExportClipboard() {
+    var data = await backupBuildData();
+    var text = JSON.stringify(data, null, 2);
+    navigator.clipboard.writeText(text).then(function() {
+        showBackupToast('COPIED TO CLIPBOARD', 'success');
+    }).catch(function() {
+        showBackupToast('CLIPBOARD FAILED', 'error');
+    });
+}
+
+// 恢复备份
+async function backupRestore() {
+    var jsonText = _bkFileData || document.getElementById('bkClipboardInput').value.trim();
+    if (!jsonText) { showBackupToast('No backup data', 'error'); return; }
+
+    var data;
+    try { data = JSON.parse(jsonText); } catch(e) { showBackupToast('Invalid JSON', 'error'); return; }
+    if (!data.version || !data.timestamp) { showBackupToast('Invalid backup format', 'error'); return; }
+    if (!confirm('Restore this backup? Current data will be replaced.')) return;
+
+    // WeChat
+    if (data.wcContacts) { wcContacts = data.wcContacts; }
+    if (data.wcChats) { wcChats = data.wcChats; }
+    if (data.chatMessages) { chatMessages = data.chatMessages; }
+    if (typeof saveWeChatData === 'function') saveWeChatData();
+
+    // 面具
+    if (data.userMasks) {
+        userMasks = data.userMasks;
+        localStorage.setItem('userMasks', JSON.stringify(userMasks));
+        if (typeof renderUserMasks === 'function') renderUserMasks();
+    }
+
+    // 设置
+    if (data.systemSettings) localStorage.setItem('systemSettings', JSON.stringify(data.systemSettings));
+    if (data.wcMeName) localStorage.setItem('wcMeName', data.wcMeName);
+    if (data.wcMeBio) localStorage.setItem('wcMeBio', data.wcMeBio);
+    if (data.wcMeAvatar) localStorage.setItem('wcMeAvatar', data.wcMeAvatar);
+
+    // Encounter 设置
+    if (data.encSettings) localStorage.setItem('encSettings', data.encSettings);
+    if (data.encPersonaPresets) localStorage.setItem('encPersonaPresets', data.encPersonaPresets);
+
+    // Encounter 故事
+    if (data.encStories && typeof encDbSet === 'function') {
+        var names = Object.keys(data.encStories);
+        for (var i = 0; i < names.length; i++) {
+            await encDbSet('story_' + names[i], data.encStories[names[i]]);
+        }
+    }
+
+    // 世界书
+    if (data.worldbookEntries) localStorage.setItem('worldbookEntries', data.worldbookEntries);
+
+    // 认知记忆
+    if (data.cognitionData && Array.isArray(data.cognitionData)) {
+        data.cognitionData.forEach(function(item) {
+            localStorage.setItem(item.key, item.value);
+        });
+    }
+
+    // API Monitor
+    if (data.amLogs && typeof amDbSet === 'function') await amDbSet('amLogs', data.amLogs);
+    if (data.amTotals && typeof amDbSet === 'function') await amDbSet('amTotals', data.amTotals);
+
+    // 刷新界面
+    if (typeof renderContacts === 'function') renderContacts();
+    if (typeof renderChats === 'function') renderChats();
+    if (typeof loadWcMeProfile === 'function') loadWcMeProfile();
+
+    backupClearImport();
+    backupUpdateStats();
+    showBackupToast('BACKUP RESTORED', 'success');
+}
+
+function showBackupToast(text, type) {
+    var t = document.getElementById('backupToast');
+    if (!t) return;
+    t.textContent = text;
+    t.className = 'backup-toast show ' + (type || '');
+    setTimeout(function() { t.className = 'backup-toast'; }, 2500);
+}
+
+// 打开设置页时更新统计
+var _origSwitchSettingsPage = typeof switchSettingsPage === 'function' ? switchSettingsPage : null;
+function switchSettingsPage(idx) {
+    document.querySelectorAll('.settings-page').forEach(function(p, i) {
+        p.classList.toggle('active', i === idx);
+    });
+    document.querySelectorAll('.settings-nav-item').forEach(function(n, i) {
+        n.classList.toggle('active', i === idx);
+    });
+    if (idx === 1) backupUpdateStats();
+}

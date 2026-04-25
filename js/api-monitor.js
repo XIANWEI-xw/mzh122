@@ -172,7 +172,7 @@ function amAutoTimerStop() {
     }
 }
 
-// 手动开始/暂停
+// 手动开始/暂停（暂停时中断正在进行的 API 调用）
 function toggleAmTimer() {
     if (amTimerRunning) {
         clearInterval(amTimerInterval);
@@ -180,6 +180,11 @@ function toggleAmTimer() {
         updateTimerButtons(false);
         const orb = document.getElementById('timerOrb');
         if (orb) { orb.classList.remove('running'); orb.classList.add('paused'); }
+
+        // 中断正在进行的 API 调用
+        abortCurrentApi();
+        const fab = document.getElementById('apiFab');
+        if (fab) fab.classList.remove('calling');
     } else {
         amTimerStart = Date.now() - amTimerElapsed;
         amTimerInterval = setInterval(updateAmTimerDisplay, 30);
@@ -463,6 +468,24 @@ function estimateTokens(text) {
     const chinese = (text.match(/[\u4e00-\u9fff]/g) || []).length;
     const other = text.length - chinese;
     return Math.ceil(chinese * 2 + other * 0.4);
+}
+
+// ===== 全局 API 中断控制 =====
+window._currentApiAbort = null;
+
+function createApiAbort() {
+    if (window._currentApiAbort) {
+        try { window._currentApiAbort.abort(); } catch(e) {}
+    }
+    window._currentApiAbort = new AbortController();
+    return window._currentApiAbort;
+}
+
+function abortCurrentApi() {
+    if (window._currentApiAbort) {
+        try { window._currentApiAbort.abort(); } catch(e) {}
+        window._currentApiAbort = null;
+    }
 }
 
 // ===== 悬浮球调用中状态 =====

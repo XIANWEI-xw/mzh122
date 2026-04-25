@@ -792,6 +792,7 @@ async function callChatAPI(contact, messages) {
     if (typeof amSetCalling === 'function') amSetCalling(true, 'WeChat', model);
 
     try {
+        const abortCtrl = typeof createApiAbort === 'function' ? createApiAbort() : null;
         const response = await fetch(apiUrl + '/chat/completions', {
             method: 'POST',
             headers: {
@@ -802,7 +803,8 @@ async function callChatAPI(contact, messages) {
                 model: model,
                 messages: apiMessages,
                 temperature: temperature
-            })
+            }),
+            signal: abortCtrl ? abortCtrl.signal : undefined
         });
 
         removeTypingIndicator();
@@ -898,6 +900,14 @@ async function callChatAPI(contact, messages) {
     } catch (error) {
         removeTypingIndicator();
         if (typeof amSetCalling === 'function') amSetCalling(false, 'WeChat', model);
+
+        if (error.name === 'AbortError') {
+            const abortMsg = { role: 'bot', text: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:middle;margin-right:4px;opacity:0.4"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>Request aborted', time: getCurrentTime() };
+            chatMessages[contact.name].push(abortMsg);
+            appendChatMessageToDOM(abortMsg);
+            return;
+        }
+
         if (typeof logApiCall === 'function') {
             logApiCall({
                 model: model, source: 'WeChat', status: 0, statusText: 'Network Error',
