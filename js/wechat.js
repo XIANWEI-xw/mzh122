@@ -343,6 +343,27 @@ function saveEditContact() {
         delete chatMessages[oldName];
     }
 
+    // 迁移 Encounter 故事数据
+    if (oldName !== newName) {
+        (async function() {
+            if (typeof loadEncStory === 'function' && typeof encDbSet === 'function' && typeof encDbDelete === 'function') {
+                var story = await loadEncStory(oldName);
+                if (story) {
+                    await encDbSet('story_' + newName, story);
+                    await encDbDelete('story_' + oldName);
+                    try { localStorage.removeItem('encStory_' + oldName); } catch(e) {}
+                }
+            }
+            // 迁移认知记忆
+            var oldCogKey = 'cogMemories_' + oldName;
+            var cogData = localStorage.getItem(oldCogKey);
+            if (cogData) {
+                localStorage.setItem('cogMemories_' + newName, cogData);
+                localStorage.removeItem(oldCogKey);
+            }
+        })();
+    }
+
     saveWeChatData(); // 保存数据
     closeEditContactModal();
     renderContacts();
