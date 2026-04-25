@@ -1353,3 +1353,168 @@ function addEncNewPreset(btnEl) {
     list.appendChild(block);
     setTimeout(() => block.querySelector('.enc-preset-input-title').focus(), 100);
 }
+// ===== 隐藏存档管理系统 =====
+// 长按 VOL.01 进入
+(function() {
+    function setupSecretEntry() {
+        const entry = document.getElementById('encSecretEntry');
+        if (!entry) return;
+        let pressTimer = null;
+
+        entry.addEventListener('touchstart', function() {
+            entry.classList.add('hint');
+            pressTimer = setTimeout(function() {
+                entry.classList.remove('hint');
+                openEncArchive();
+                if (navigator.vibrate) navigator.vibrate(15);
+            }, 800);
+        }, { passive: true });
+
+        entry.addEventListener('touchend', function() { clearTimeout(pressTimer); entry.classList.remove('hint'); });
+        entry.addEventListener('touchmove', function() { clearTimeout(pressTimer); entry.classList.remove('hint'); });
+
+        // 桌面端：三连击
+        let clicks = 0;
+        entry.addEventListener('click', function() {
+            clicks++;
+            if (clicks >= 3) { clicks = 0; openEncArchive(); }
+            setTimeout(function() { clicks = 0; }, 600);
+        });
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setupSecretEntry);
+    else setTimeout(setupSecretEntry, 300);
+})();
+
+function openEncArchive() {
+    document.getElementById('enc-dir-list').style.display = 'none';
+    const footer = document.querySelector('#enc-selection-screen .enc-dir-footer');
+    if (footer) footer.style.display = 'none';
+    const view = document.getElementById('encArchiveView');
+    if (view) view.style.display = 'flex';
+    showEncArchiveToast('ARCHIVE MODE');
+    renderEncArchive();
+}
+
+function closeEncArchive() {
+    document.getElementById('enc-dir-list').style.display = '';
+    const footer = document.querySelector('#enc-selection-screen .enc-dir-footer');
+    if (footer) footer.style.display = '';
+    const view = document.getElementById('encArchiveView');
+    if (view) view.style.display = 'none';
+}
+
+async function renderEncArchive() {
+    const list = document.getElementById('encArchiveList');
+    const empty = document.getElementById('encArchiveEmpty');
+    const danger = document.getElementById('encArchiveDanger');
+    const countEl = document.getElementById('encArchiveCount');
+    if (!list) return;
+
+    list.innerHTML = '';
+    const contacts = getEncContacts();
+    let cards = [];
+
+    for (const contact of contacts) {
+        const story = await loadEncStory(contact.name);
+        if (story && story.trim()) {
+            const textOnly = story.replace(/<[^>]*>/g, '');
+            cards.push({ name: contact.name, chars: textOnly.length });
+        }
+    }
+
+    if (cards.length === 0) {
+        empty.style.display = 'block';
+        danger.style.display = 'none';
+    } else {
+        empty.style.display = 'none';
+        danger.style.display = 'block';
+        let html = '';
+        cards.forEach(function(c, i) {
+            const safeName = c.name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            html += '<div class="enc-archive-card" id="encArc' + i + '">' +
+                '<div class="enc-archive-card-del" onclick="event.stopPropagation();deleteEncArchiveCard(\'encArc' + i + '\',\'' + safeName + '\')">' +
+                    '<svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>' +
+                '</div>' +
+                '<div class="enc-archive-card-top">' +
+                    '<div class="enc-archive-card-name">' + c.name + '</div>' +
+                '</div>' +
+                '<div class="enc-archive-card-meta">' +
+                    '<span>' + c.chars.toLocaleString() + ' CHARS</span>' +
+                '</div>' +
+            '</div>';
+        });
+        list.innerHTML = html;
+    }
+    if (countEl) countEl.textContent = cards.length + ' SAVED';
+}
+
+async function deleteEncArchiveCard(cardId, name) {
+    const card = document.getElementById(cardId);
+    if (!card) return;
+    card.style.transition = 'all 0.4s cubic-bezier(0.4,0,0.2,1)';
+    card.style.opacity = '0';
+    card.style.transform = 'translateX(-40px)';
+    card.style.maxHeight = card.offsetHeight + 'px';
+    setTimeout(function() { card.style.maxHeight = '0'; card.style.padding = '0'; card.style.margin = '0'; card.style.borderWidth = '0'; }, 200);
+
+    // 从 IndexedDB 删除
+    const key = 'story_' + name;
+    await encDbDelete(key);
+    try { localStorage.removeItem('encStory_' + name); } catch(e) {}
+
+    setTimeout(function() {
+        card.remove();
+        checkEncArchiveEmpty();
+    }, 500);
+}
+
+function checkEncArchiveEmpty() {
+    const cards = document.querySelectorAll('.enc-archive-card');
+    const countEl = document.getElementById('encArchiveCount');
+    if (countEl) countEl.textContent = cards.length + ' SAVED';
+    if (cards.length === 0) {
+        document.getElementById('encArchiveDanger').style.display = 'none';
+        document.getElementById('encArchiveEmpty').style.display = 'block';
+    }
+}
+
+function showEncPurgeConfirm() {
+    const n = document.querySelectorAll('.enc-archive-card').length;
+    if (n === 0) return;
+    document.getElementById('encPurgeCount').innerHTML = n + '<span> RECORDS</span>';
+    document.getElementById('encPurgeOverlay').classList.add('active');
+}
+
+function hideEncPurgeConfirm() {
+    document.getElementById('encPurgeOverlay').classList.remove('active');
+}
+
+async function purgeAllEncStories() {
+    hideEncPurgeConfirm();
+    const contacts = getEncContacts();
+    for (const contact of contacts) {
+        const key = 'story_' + contact.name;
+        await encDbDelete(key);
+        try { localStorage.removeItem('encStory_' + contact.name); } catch(e) {}
+    }
+
+    const cards = document.querySelectorAll('.enc-archive-card');
+    cards.forEach(function(card, i) {
+        setTimeout(function() {
+            card.style.transition = 'all 0.3s ease';
+            card.style.opacity = '0';
+            card.style.transform = 'scale(0.9) translateY(-10px)';
+            setTimeout(function() { card.remove(); }, 300);
+        }, i * 100);
+    });
+    setTimeout(function() { checkEncArchiveEmpty(); }, cards.length * 100 + 400);
+}
+
+function showEncArchiveToast(text) {
+    const t = document.getElementById('encArchiveToast');
+    if (!t) return;
+    t.textContent = text;
+    t.classList.add('show');
+    setTimeout(function() { t.classList.remove('show'); }, 2000);
+}

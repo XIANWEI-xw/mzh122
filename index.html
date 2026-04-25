@@ -1057,6 +1057,20 @@
         <!-- ================= 7. Encounter 小说模式 ================= -->
         <div class="app-screen" id="encounterApp">
 
+            <!-- 清除确认弹窗 -->
+            <div class="enc-purge-overlay" id="encPurgeOverlay" onclick="hideEncPurgeConfirm()">
+                <div class="enc-purge-box" onclick="event.stopPropagation()">
+                    <div class="enc-purge-icon">⚠</div>
+                    <div class="enc-purge-title">Purge All?</div>
+                    <div class="enc-purge-desc">This action is irreversible.<br>All story progress will be lost forever.</div>
+                    <div class="enc-purge-count" id="encPurgeCount">0<span> RECORDS</span></div>
+                    <div class="enc-purge-btns">
+                        <button class="enc-purge-btn enc-purge-cancel" onclick="hideEncPurgeConfirm()">Cancel</button>
+                        <button class="enc-purge-btn enc-purge-delete" onclick="purgeAllEncStories()">Purge</button>
+                    </div>
+                </div>
+            </div>
+
             <!-- 角色设定全屏面板 -->
             <div class="enc-persona-overlay" id="enc-persona-overlay">
                 <div class="enc-persona-header">
@@ -1235,7 +1249,7 @@
                         </div>
                         <div class="enc-dir-masthead-right">
                             <div class="enc-dir-masthead-barcode"></div>
-                            <div class="enc-dir-masthead-issue">VOL.01</div>
+                            <div class="enc-dir-masthead-issue" id="encSecretEntry">VOL.01</div>
                         </div>
                     </div>
                     <div class="enc-dir-kicker">System · Offline Mode</div>
@@ -1249,6 +1263,28 @@
                     <div class="enc-dir-footer-text">Studio Zero · Encounter</div>
                     <div class="enc-dir-footer-line"></div>
                 </div>
+
+                <!-- 隐藏存档管理 -->
+                <div class="enc-archive-view" id="encArchiveView">
+                    <div class="enc-archive-header">
+                        <div class="enc-archive-title-wrap">
+                            <div class="enc-archive-title">Archive.</div>
+                            <div class="enc-archive-count" id="encArchiveCount">0 SAVED</div>
+                        </div>
+                        <button class="enc-archive-back" onclick="closeEncArchive()">← BACK</button>
+                    </div>
+                    <div class="enc-archive-list" id="encArchiveList"></div>
+                    <div class="enc-archive-empty" id="encArchiveEmpty">
+                        <div class="enc-archive-empty-icon">❦</div>
+                        <div class="enc-archive-empty-title">No Stories Yet</div>
+                        <div class="enc-archive-empty-desc">Enter encounters to begin writing</div>
+                    </div>
+                    <div class="enc-archive-danger" id="encArchiveDanger">
+                        <div class="enc-archive-danger-diamond"></div>
+                        <div class="enc-archive-danger-text" onclick="showEncPurgeConfirm()">purge all records</div>
+                    </div>
+                </div>
+                <div class="enc-archive-toast" id="encArchiveToast"></div>
             </div>
 
             <!-- 小说阅读界面 -->
