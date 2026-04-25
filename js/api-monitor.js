@@ -21,14 +21,16 @@ function makeOrbDraggable(el, tapFn) {
     if (!el) return;
     let sx, sy, ox, oy, dragged;
 
-    // 阻止所有 click（防止穿透）
+    // 桌面端点击支持（非触屏设备）
+    let _wasTouched = false;
     el.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }, true);
+        if (_wasTouched) { e.preventDefault(); e.stopPropagation(); return; }
+        if (tapFn) tapFn();
+    });
 
     el.addEventListener('touchstart', function(e) {
         if (e.touches.length !== 1) return;
+        _wasTouched = true;
         const t = e.touches[0];
         sx = t.clientX; sy = t.clientY;
         const r = el.getBoundingClientRect();
