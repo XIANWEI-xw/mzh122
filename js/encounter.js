@@ -248,6 +248,7 @@ function openEncounter() {
     encApp.classList.add('active');
     encSelectionScreen.classList.remove('enc-hidden');
     encStoryScreen.classList.add('enc-hidden');
+    if (typeof closeEncArchive === 'function') closeEncArchive();
     loadEncPersonaPresets();
     loadEncSettings();
     renderEncCharacterCards();
@@ -261,6 +262,12 @@ function closeEncounter() {
 // ===== 渲染角色选择卡片（从 WeChat 联系人读取）=====
 function renderEncCharacterCards() {
     const list = document.getElementById('enc-dir-list');
+    if (!list) return;
+    list.style.display = '';
+    const footer = document.querySelector('#enc-selection-screen .enc-dir-footer');
+    if (footer) footer.style.display = '';
+    const archiveView = document.getElementById('encArchiveView');
+    if (archiveView) archiveView.style.display = 'none';
     list.innerHTML = '';
 
     const allContacts = getEncContacts();
@@ -1431,20 +1438,26 @@ async function renderEncArchive() {
         danger.style.display = 'block';
         let html = '';
         cards.forEach(function(c, i) {
-            const safeName = c.name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-            html += '<div class="enc-archive-card" id="encArc' + i + '">' +
-                '<div class="enc-archive-card-del" onclick="event.stopPropagation();deleteEncArchiveCard(\'encArc' + i + '\',\'' + safeName + '\')">' +
+            const div = document.createElement('div');
+            div.className = 'enc-archive-card';
+            div.id = 'encArc' + i;
+            div.setAttribute('data-name', c.name);
+            div.innerHTML =
+                '<div class="enc-archive-card-del">' +
                     '<svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>' +
                 '</div>' +
                 '<div class="enc-archive-card-top">' +
-                    '<div class="enc-archive-card-name">' + c.name + '</div>' +
+                    '<div class="enc-archive-card-name">' + escEncHtml(c.name) + '</div>' +
                 '</div>' +
                 '<div class="enc-archive-card-meta">' +
                     '<span>' + c.chars.toLocaleString() + ' CHARS</span>' +
-                '</div>' +
-            '</div>';
+                '</div>';
+            div.querySelector('.enc-archive-card-del').addEventListener('click', function(e) {
+                e.stopPropagation();
+                deleteEncArchiveCard(div.id, c.name);
+            });
+            list.appendChild(div);
         });
-        list.innerHTML = html;
     }
     if (countEl) countEl.textContent = cards.length + ' SAVED';
 }
