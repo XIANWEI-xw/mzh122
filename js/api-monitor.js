@@ -16,10 +16,12 @@ function updateAmFabVisibility() {
     }
 }
 
-// ===== 安全拖动系统（仅触摸，不污染全局）=====
-function makeOrbDraggable(el, tapCallback) {
+// ===== 安全拖动系统（只管拖动，点击由 HTML onclick 处理）=====
+window._orbDragged = false;
+
+function makeOrbDraggable(el) {
     if (!el) return;
-    let sx, sy, ox, oy, moved;
+    let sx, sy, ox, oy;
 
     el.addEventListener('touchstart', function(e) {
         if (e.touches.length !== 1) return;
@@ -27,15 +29,17 @@ function makeOrbDraggable(el, tapCallback) {
         sx = t.clientX; sy = t.clientY;
         const r = el.getBoundingClientRect();
         ox = r.left; oy = r.top;
-        moved = false;
+        window._orbDragged = false;
         el.style.transition = 'none';
 
         function onMove(ev) {
             const m = ev.touches[0];
             const dx = m.clientX - sx;
             const dy = m.clientY - sy;
-            if (Math.abs(dx) > 6 || Math.abs(dy) > 6) moved = true;
-            if (!moved) return;
+            if (!window._orbDragged && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) {
+                window._orbDragged = true;
+            }
+            if (!window._orbDragged) return;
             if (ev.cancelable) ev.preventDefault();
             const nx = Math.max(0, Math.min(window.innerWidth - el.offsetWidth, ox + dx));
             const ny = Math.max(0, Math.min(window.innerHeight - el.offsetHeight, oy + dy));
@@ -49,10 +53,7 @@ function makeOrbDraggable(el, tapCallback) {
             document.removeEventListener('touchmove', onMove);
             document.removeEventListener('touchend', onEnd);
             el.style.transition = '';
-            if (!moved) {
-                if (tapCallback) tapCallback();
-            } else {
-                // 吸附到最近的边
+            if (window._orbDragged) {
                 const rect = el.getBoundingClientRect();
                 const cx = rect.left + rect.width / 2;
                 el.style.transition = 'left 0.3s cubic-bezier(0.16,1,0.3,1)';
@@ -66,20 +67,15 @@ function makeOrbDraggable(el, tapCallback) {
         }
 
         document.addEventListener('touchmove', onMove, { passive: false });
-        document.addEventListener('touchend', onEnd, { once: false });
+        document.addEventListener('touchend', onEnd);
     }, { passive: true });
-
-    // 桌面端点击也要响应
-    el.addEventListener('click', function(e) {
-        if (!moved && tapCallback) tapCallback();
-    });
 }
 
-// 页面就绪后绑定
+// 页面就绪后绑定拖动
 (function() {
     function setup() {
-        makeOrbDraggable(document.getElementById('apiFab'), toggleApiMonitor);
-        makeOrbDraggable(document.getElementById('timerOrb'), toggleTimerPanel);
+        makeOrbDraggable(document.getElementById('apiFab'));
+        makeOrbDraggable(document.getElementById('timerOrb'));
     }
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', setup);
