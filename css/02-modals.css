@@ -31,89 +31,87 @@
          .cm-icon-box { width: 64px; height: 64px; background: var(--c-card); border-radius: 20px; display: flex; justify-content: center; align-items: center; font-size: 26px; transition: 0.2s cubic-bezier(0.2,0.8,0.2,1); border: none; box-shadow: 0 8px 20px rgba(0,0,0,0.04); margin-bottom: 10px; color: var(--c-black);}
          .cm-text { font-size: 12px; color: var(--c-gray-dark); font-weight: 700; text-align: center; }
 /* ===== Data Vault (Backup/Restore) ===== */
-.backup-stats {
-    display:grid !important; grid-template-columns:repeat(3,1fr) !important; gap:1px;
-    background:rgba(0,0,0,0.06); border-radius:10px; overflow:hidden; margin-bottom:16px;
+#setPage2 .backup-stats {
+    display:grid; grid-template-columns:repeat(3,1fr); gap:1px;
+    background:rgba(0,0,0,0.06); border-radius:10px; overflow:hidden; margin-bottom:0;
 }
-.backup-stat { background:#fff; padding:12px 8px; text-align:center; }
-.backup-stat-num { font-family:'Space Mono',monospace; font-size:16px; font-weight:700; color:#1a1a1a; display:block; }
-.backup-stat-label { font-family:'Space Mono',monospace; font-size:6px; font-weight:700; color:#999; letter-spacing:1px; text-transform:uppercase; margin-top:4px; display:block; }
+#setPage2 .backup-stat { background:#fff; padding:12px 8px; text-align:center; }
+#setPage2 .backup-stat-num { font-family:'Space Mono',monospace; font-size:16px; font-weight:700; color:#1a1a1a; display:block; line-height:1.2; }
+#setPage2 .backup-stat-label { font-family:'Space Mono',monospace; font-size:6px; font-weight:700; color:#999; letter-spacing:1px; text-transform:uppercase; margin-top:4px; display:block; }
 
-.backup-section { display:flex; flex-direction:column; gap:12px; }
-.backup-btn {
-    display:flex !important; align-items:center; gap:14px; padding:14px 16px;
+#setPage2 .backup-section { display:flex; flex-direction:column; gap:12px; }
+#setPage2 .backup-btn {
+    display:flex; align-items:center; gap:14px; padding:14px 16px;
     background:rgba(0,0,0,0.02); border:1px solid rgba(0,0,0,0.06);
     border-radius:12px; cursor:pointer; transition:all 0.3s;
 }
-.backup-btn:active { transform:scale(0.98); }
-.backup-icon {
-    width:40px; height:40px; border-radius:10px;
+#setPage2 .backup-btn:active { transform:scale(0.98); }
+#setPage2 .backup-icon {
+    width:40px; height:40px; min-width:40px; border-radius:10px;
     display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    overflow:hidden;
 }
-.backup-icon svg { width:18px; height:18px; min-width:18px; min-height:18px; max-width:18px; max-height:18px; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; fill:none; }
-.backup-icon-export { background:#1a1a1a; }
-.backup-icon-export svg { stroke:#fff; }
-.backup-icon-clipboard { background:#e8e4dc; }
-.backup-icon-clipboard svg { stroke:#1a1a1a; }
-.backup-icon-import { background:#f0ede6; }
-.backup-icon-import svg { stroke:#1a1a1a; }
-.backup-info { flex:1; }
-.backup-title { font-family:'Space Mono',monospace; font-size:10px; font-weight:700; color:#1a1a1a; letter-spacing:0.5px; margin-bottom:3px; }
-.backup-desc { font-size:11px; color:#999; line-height:1.4; }
-.backup-arrow { font-family:'Space Mono',monospace; font-size:14px; color:rgba(0,0,0,0.15); transition:transform 0.3s; }
-.backup-btn:hover .backup-arrow { transform:translateX(3px); color:rgba(0,0,0,0.3); }
+#setPage2 .backup-icon svg { width:18px !important; height:18px !important; max-width:18px; max-height:18px; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; fill:none; flex-shrink:0; }
+#setPage2 .backup-icon-export { background:#1a1a1a; }
+#setPage2 .backup-icon-export svg { stroke:#fff; }
+#setPage2 .backup-icon-clipboard { background:#e8e4dc; }
+#setPage2 .backup-icon-clipboard svg { stroke:#1a1a1a; }
 
-.backup-divider { display:flex; align-items:center; gap:10px; padding:4px 0; }
-.backup-divider-line { flex:1; height:1px; background:rgba(0,0,0,0.06); }
-.backup-divider-text { font-family:'Space Mono',monospace; font-size:7px; font-weight:700; color:rgba(0,0,0,0.12); letter-spacing:2px; text-transform:uppercase; }
+#setPage2 .backup-info { flex:1; min-width:0; }
+#setPage2 .backup-title { font-family:'Space Mono',monospace; font-size:10px; font-weight:700; color:#1a1a1a; letter-spacing:0.5px; margin-bottom:3px; }
+#setPage2 .backup-desc { font-size:11px; color:#999; line-height:1.4; }
+#setPage2 .backup-arrow { font-family:'Space Mono',monospace; font-size:14px; color:rgba(0,0,0,0.15); transition:transform 0.3s; flex-shrink:0; }
 
-.import-drop-zone {
+#setPage2 .backup-divider { display:flex; align-items:center; gap:10px; padding:4px 0; }
+#setPage2 .backup-divider-line { flex:1; height:1px; background:rgba(0,0,0,0.06); }
+#setPage2 .backup-divider-text { font-family:'Space Mono',monospace; font-size:7px; font-weight:700; color:rgba(0,0,0,0.12); letter-spacing:2px; text-transform:uppercase; white-space:nowrap; }
+
+#setPage2 .import-drop-zone {
     border:1.5px dashed rgba(0,0,0,0.1); border-radius:12px;
     padding:24px; text-align:center; transition:all 0.3s; cursor:pointer;
 }
-.import-drop-zone:hover { border-color:rgba(0,0,0,0.2); background:rgba(0,0,0,0.01); }
-.import-drop-zone.dragover { border-color:#1a1a1a; background:rgba(0,0,0,0.03); }
-.import-drop-zone.has-file { border-style:solid; border-color:rgba(0,0,0,0.1); }
-.import-drop-icon { margin-bottom:10px; }
-.import-drop-icon svg { width:24px; height:24px; max-width:24px; max-height:24px; stroke:rgba(0,0,0,0.15); fill:none; stroke-width:1.5; display:block; margin:0 auto; }
-.import-drop-text { font-family:'Space Mono',monospace; font-size:8px; font-weight:700; color:#999; letter-spacing:1px; text-transform:uppercase; }
-.import-drop-sub { font-size:10px; color:rgba(0,0,0,0.2); margin-top:4px; }
+#setPage2 .import-drop-zone.dragover { border-color:#1a1a1a; background:rgba(0,0,0,0.03); }
+#setPage2 .import-drop-zone.has-file { border-style:solid; border-color:rgba(0,0,0,0.1); }
+#setPage2 .import-drop-icon { margin-bottom:10px; }
+#setPage2 .import-drop-icon svg { width:24px !important; height:24px !important; max-width:24px; max-height:24px; stroke:rgba(0,0,0,0.15); fill:none; stroke-width:1.5; display:inline-block; }
+#setPage2 .import-drop-text { font-family:'Space Mono',monospace; font-size:8px; font-weight:700; color:#999; letter-spacing:1px; text-transform:uppercase; }
+#setPage2 .import-drop-sub { font-size:10px; color:rgba(0,0,0,0.2); margin-top:4px; }
 
-.import-file-info {
+#setPage2 .import-file-info {
     display:none; align-items:center; gap:12px; padding:12px 16px;
     background:rgba(0,0,0,0.02); border-radius:10px; margin-top:12px;
 }
-.import-file-info.show { display:flex; }
-.import-file-icon { width:36px; height:36px; border-radius:8px; background:#1a1a1a; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-.import-file-icon svg { width:16px; height:16px; max-width:16px; max-height:16px; stroke:#fff; fill:none; stroke-width:1.5; }
-.import-file-detail { flex:1; }
-.import-file-name { font-family:'Space Mono',monospace; font-size:9px; font-weight:700; color:#1a1a1a; }
-.import-file-size { font-family:'Space Mono',monospace; font-size:8px; color:#999; margin-top:2px; }
-.import-file-remove {
-    width:24px; height:24px; border-radius:50%; background:rgba(200,100,100,0.08);
-    border:none; cursor:pointer; display:flex; align-items:center; justify-content:center;
+#setPage2 .import-file-info.show { display:flex; }
+#setPage2 .import-file-icon { width:36px; height:36px; min-width:36px; border-radius:8px; background:#1a1a1a; display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden; }
+#setPage2 .import-file-icon svg { width:16px !important; height:16px !important; max-width:16px; max-height:16px; stroke:#fff; fill:none; stroke-width:1.5; }
+#setPage2 .import-file-detail { flex:1; min-width:0; }
+#setPage2 .import-file-name { font-family:'Space Mono',monospace; font-size:9px; font-weight:700; color:#1a1a1a; }
+#setPage2 .import-file-size { font-family:'Space Mono',monospace; font-size:8px; color:#999; margin-top:2px; }
+#setPage2 .import-file-remove {
+    width:24px; height:24px; min-width:24px; border-radius:50%; background:rgba(200,100,100,0.08);
+    border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;
 }
-.import-file-remove:active { transform:scale(0.9); }
-.import-file-remove svg { width:12px; height:12px; max-width:12px; max-height:12px; stroke:#c87a7a; fill:none; stroke-width:2; }
+#setPage2 .import-file-remove:active { transform:scale(0.9); }
+#setPage2 .import-file-remove svg { width:12px !important; height:12px !important; max-width:12px; max-height:12px; stroke:#c87a7a; fill:none; stroke-width:2; }
 
-.clipboard-textarea {
+#setPage2 .clipboard-textarea {
     width:100%; min-height:80px; background:rgba(0,0,0,0.02);
     border:1px solid rgba(0,0,0,0.06); border-radius:10px;
     padding:12px; font-family:'Space Mono',monospace; font-size:10px;
     color:#1a1a1a; line-height:1.6; resize:vertical; outline:none; transition:border-color 0.3s;
 }
-.clipboard-textarea:focus { border-color:rgba(0,0,0,0.15); }
-.clipboard-textarea::placeholder { color:rgba(0,0,0,0.15); font-family:'Cormorant Garamond',serif; font-style:italic; font-size:12px; }
+#setPage2 .clipboard-textarea:focus { border-color:rgba(0,0,0,0.15); }
+#setPage2 .clipboard-textarea::placeholder { color:rgba(0,0,0,0.15); font-family:'Cormorant Garamond',serif; font-style:italic; font-size:12px; }
 
-.backup-actions { display:flex; gap:10px; margin-top:14px; }
-.backup-action-btn {
+#setPage2 .backup-actions { display:flex; gap:10px; margin-top:14px; }
+#setPage2 .backup-action-btn {
     flex:1; padding:12px; border-radius:10px; border:none; cursor:pointer;
     font-family:'Space Mono',monospace; font-size:8px; font-weight:700;
     letter-spacing:1.5px; text-transform:uppercase; transition:all 0.3s;
 }
-.backup-action-btn:active { transform:scale(0.97); }
-.btn-restore { background:#1a1a1a; color:#fff; }
-.btn-clear-import { background:rgba(0,0,0,0.04); color:#999; border:1px solid rgba(0,0,0,0.06); }
+#setPage2 .backup-action-btn:active { transform:scale(0.97); }
+#setPage2 .btn-restore { background:#1a1a1a; color:#fff; }
+#setPage2 .btn-clear-import { background:rgba(0,0,0,0.04); color:#999; border:1px solid rgba(0,0,0,0.06); }
 
 .backup-toast {
     position:fixed; bottom:60px; left:50%; transform:translateX(-50%) translateY(20px);
@@ -125,4 +123,3 @@
 .backup-toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
 .backup-toast.success { background:#5a8a5a; }
 .backup-toast.error { background:#8a5a5a; }
-         
