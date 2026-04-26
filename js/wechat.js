@@ -596,6 +596,13 @@ function sendWcMessageOnly() {
 
     chatMessages[currentChatContact.name].push(newMsg);
     saveWeChatData(); 
+
+    // 自动总结触发逻辑
+    const threshold = currentChatContact.autoSynthThreshold || 20;
+    const msgCount = chatMessages[currentChatContact.name].length;
+    if (msgCount > 0 && msgCount % threshold === 0) {
+        initiateSynthesis(currentChatContact);
+    }
     
     input.value = '';
     appendChatMessageToDOM(newMsg); 
@@ -739,6 +746,19 @@ async function callChatAPI(contact, messages) {
 
     systemPrompt += contact.persona || 'You are a helpful AI assistant.';
 
+    // 注入时间感知 (强化版：包含当前时间和回复时效性指令)
+    if (contact.timePerception) {
+        const now = new Date();
+        const timeStr = now.toLocaleString('en-US', { 
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', 
+            hour: '2-digit', minute: '2-digit', second: '2-digit' 
+        });
+        systemPrompt += `\n\n[Temporal Sync Protocol]
+- Current System Time: ${timeStr}
+- Message History: Every message below is prefixed with its original timestamp in [HH:mm] format.
+- Instruction: Use this data to perceive the passage of time. Acknowledge if significant time has passed since the last exchange, or if the current time is late at night/early morning for the user.`;
+    }
+
     // 注入 Vision 外貌描述
     if (contact.visionDesc) {
         systemPrompt += '\n\n[Visual Identity - from avatar scan]\n' + contact.visionDesc;
@@ -790,9 +810,13 @@ async function callChatAPI(contact, messages) {
             rawText = '[User sent a photo]';
         }
 
-        let msgContent = `${tag} ${rawText}`;
+        // 注入高精度时间戳：[索引] [时:分] 内容
+        let msgContent = contact.timePerception ? `${tag} [${msg.time}] ${rawText}` : `${tag} ${rawText}`;
+        
         if (msg.role === 'user' && msg.replyToIndex !== undefined && msg.replyToIndex >= 0) {
-            msgContent = `${tag} [RE:#${msg.replyToIndex}] ${rawText}`;
+            msgContent = contact.timePerception 
+                ? `${tag} [${msg.time}] [RE:#${msg.replyToIndex}] ${rawText}`
+                : `${tag} [RE:#${msg.replyToIndex}] ${rawText}`;
         }
 
         if (msg.visionUrl) {
@@ -1654,6 +1678,7 @@ function openChatSettings() {
     document.getElementById('wcCsAiName').value = currentChatContact.chatName || currentChatContact.name || '';
     document.getElementById('wcCsPersona').value = currentChatContact.persona || '';
     document.getElementById('wcCsBilingual').checked = currentChatContact.bilingual || false;
+    document.getElementById('wcCsTimePerception').checked = currentChatContact.timePerception || false;
     
     const bilingualOptions = document.getElementById('wcCsBilingualOptions');
     if (bilingualOptions) {
@@ -1734,6 +1759,13 @@ function openChatSettings() {
     } else {
         aAvatar.style.display = 'none'; aEmoji.style.display = 'block';
     }
+
+    // 加载认知合成设置
+    const autoSynthInput = document.getElementById('autoSynthThreshold');
+    if (autoSynthInput) {
+        autoSynthInput.value = currentChatContact.autoSynthThreshold || 20;
+    }
+    updateSynthStatusText("SYSTEM READY: WAITING FOR UPLINK...");
 }
 
 function saveChatSettings() {
@@ -1744,6 +1776,7 @@ function saveChatSettings() {
     currentChatContact.chatName = document.getElementById('wcCsAiName').value;
     currentChatContact.persona = document.getElementById('wcCsPersona').value;
     currentChatContact.bilingual = document.getElementById('wcCsBilingual').checked;
+    currentChatContact.timePerception = document.getElementById('wcCsTimePerception').checked;
     
     const customLang = document.getElementById('wcCsCustomLang');
     if (customLang && customLang.value.trim()) {
@@ -1771,6 +1804,12 @@ function saveChatSettings() {
     if (csChatBgData !== null) {
         currentChatContact.chatBg = csChatBgData;
     }
+
+    // 保存认知合成阈值
+    const autoSynthInput = document.getElementById('autoSynthThreshold');
+    if (autoSynthInput) {
+        currentChatContact.autoSynthThreshold = parseInt(autoSynthInput.value) || 20;
+    }
     
     saveWeChatData();
     renderContacts();
@@ -1792,6 +1831,105 @@ function saveChatSettings() {
     renderChatMessages();
     closeChatSettings();
 }
+
+// ================= 认知合成 (Cognitive Synthesis) 核心引擎 =================
+
+async function initiateSynthesis(contact) {
+    if (!contact) return;
+    const messages = chatMessages[contact.name] || [];
+    if (messages.length < 5) {
+        updateSynthStatusText("INSUFFICIENT DATA: NEED MORE DIALOGUE.");
+        return;
+    }
+
+    updateSynthStatusText("SYNTHESIZING... ANALYZING NEURAL PATTERNS.");
+    const btn = document.querySelector('.btn-synth-manual');
+    if (btn) btn.style.opacity = '0.5';
+
+    const settings = JSON.parse(localStorage.getItem('systemSettings')) || {};
+    const apiUrl = settings.apiUrl;
+    const apiToken = settings.apiToken;
+    const model = settings.apiModel;
+
+    if (!apiUrl || !apiToken || !model) {
+        updateSynthStatusText("ERROR: API NOT CONFIGURED.");
+        if (btn) btn.style.opacity = '1';
+        return;
+    }
+
+    // 构建总结 Prompt
+    const chatSnippet = messages.slice(-50).map(m => `${m.role === 'user' ? 'User' : 'AI'}: ${m.text}`).join('\n');
+    const summaryPrompt = `
+        You are a high-precision Memory Archiver. 
+        Analyze the following dialogue history between the User and the AI (${contact.name}).
+        Extract key developments, relationship shifts, facts, or emotional milestones.
+        
+        Categorize each extracted memory into one of these levels:
+        - CORE: Identity-defining facts, permanent bonds, or core character traits.
+        - HIGH: Significant events, important promises, or major plot points.
+        - TRACE: Minor details, fleeting moods, or specific trivia mentioned.
+
+        Return ONLY a valid JSON array of objects. Do not include any other text.
+        Format: [{"type": "CORE"|"HIGH"|"TRACE", "text": "Memory description in 1st person or neutral tone", "date": "Oct 24, 2024"}]
+        
+        Dialogue History:
+        ${chatSnippet}
+    `;
+
+    try {
+        const response = await fetch(apiUrl + '/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + apiToken
+            },
+            body: JSON.stringify({
+                model: model,
+                messages: [{ role: 'system', content: summaryPrompt }],
+                temperature: 0.3
+            })
+        });
+
+        if (!response.ok) throw new Error("API Error");
+
+        const data = await response.json();
+        const rawContent = data.choices?.[0]?.message?.content || "";
+        
+        // 解析 JSON
+        const jsonMatch = rawContent.match(/\[\s*\{.*\}\s*\]/s);
+        const memories = jsonMatch ? JSON.parse(jsonMatch[0]) : [];
+
+        if (memories.length > 0) {
+            if (typeof addCogMemoryFromAI === 'function') {
+                memories.forEach(mem => {
+                    addCogMemoryFromAI(contact.name, mem.type, mem.text, mem.date);
+                });
+                updateSynthStatusText(`SUCCESS: ${memories.length} MEMORIES ARCHIVED.`);
+                if (navigator.vibrate) navigator.vibrate([10, 50, 10]);
+            }
+        } else {
+            updateSynthStatusText("SYNTHESIS COMPLETE: NO NEW KEY MEMORIES FOUND.");
+        }
+
+    } catch (e) {
+        console.error("Synthesis Failed:", e);
+        updateSynthStatusText("ERROR: SYNTHESIS INTERRUPTED.");
+    } finally {
+        if (btn) btn.style.opacity = '1';
+    }
+}
+
+function updateSynthStatusText(text) {
+    const statusEl = document.querySelector('.status-text');
+    if (statusEl) statusEl.textContent = text;
+}
+
+window.manualInitiateSynthesis = function() {
+    if (currentChatContact) {
+        playWcClickSound();
+        initiateSynthesis(currentChatContact);
+    }
+};
 
 function previewCsAvatar(event, type) {
     const file = event.target.files[0];

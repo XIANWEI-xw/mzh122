@@ -285,3 +285,24 @@ function getCognitionPrompt(contactName) {
     
     return prompt;
 }
+
+// 供 AI 总结引擎调用：直接插入记忆
+function addCogMemoryFromAI(contactName, type, text, date) {
+    if (!cogMemories[contactName]) cogMemories[contactName] = [];
+    
+    // 检查是否已存在类似记忆（简单去重）
+    const exists = cogMemories[contactName].some(m => m.text === text);
+    if (exists) return;
+
+    cogMemories[contactName].push({
+        id: Date.now() + Math.floor(Math.random() * 1000),
+        type: type || 'TRACE',
+        text: text,
+        date: date || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    });
+    
+    saveCogData();
+    if (cogCurrentContact === contactName) {
+        renderCogMemories();
+    }
+}

@@ -548,9 +548,58 @@
                             </div>
                         </div>
 
+                        <!-- ================= Temporal Sync: Black Nano Edition ================= -->
+                        <div class="ts-nano-module" style="width: 88%; margin: 15px auto; background: #0a0a0a; border: 1px solid #222; border-radius: 4px; display: flex; height: 58px; position: relative; overflow: hidden; box-shadow: 0 8px 20px rgba(0,0,0,0.3);">
+                            <!-- 左侧极窄金色标尺 -->
+                            <div style="width: 3px; background: #a68e6b; height: 100%; opacity: 0.8;"></div>
+
+                            <!-- 内容区 -->
+                            <div style="flex: 1; padding: 8px 12px; display: flex; flex-direction: column; justify-content: center;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                                    <div style="display: flex; align-items: center; gap: 6px;">
+                                        <span style="font-family: 'Cormorant Garamond'; font-size: 13px; font-weight: 700; color: #fff; letter-spacing: 0.5px;">Temporal Sync</span>
+                                        <span style="font-family: 'Space Mono'; font-size: 6px; color: #a68e6b; border: 1px solid rgba(166,142,107,0.3); padding: 0 3px; border-radius: 2px;">T.S</span>
+                                    </div>
+                                    <label class="cs-switch" style="transform: scale(0.65); transform-origin: right center;">
+                                        <input type="checkbox" id="wcCsTimePerception">
+                                        <span class="cs-switch-track" style="background: #333;"></span>
+                                    </label>
+                                </div>
+
+                                <!-- 时间码与动态扫描 -->
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <div id="cs-live-time-code" style="font-family: 'Space Mono'; font-size: 14px; font-weight: 700; color: #fff; opacity: 0.85; letter-spacing: -0.5px;">00:00:00:00</div>
+                                    <div style="flex: 1; height: 2px; background: rgba(255,255,255,0.05); position: relative; overflow: hidden;">
+                                        <div style="position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, #a68e6b, transparent); animation: nanoScan 2.5s infinite linear;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <style>
+                            @keyframes nanoScan { 0% { left: -100%; } 100% { left: 100%; } }
+                            #wcCsTimePerception:checked + .cs-switch-track { background: #a68e6b !important; }
+                        </style>
+
+                        <script>
+                            if(!window.temporalTimer) {
+                                window.temporalTimer = setInterval(() => {
+                                    const el = document.getElementById('cs-live-time-code');
+                                    if(el) {
+                                        const now = new Date();
+                                        const h = String(now.getHours()).padStart(2, '0');
+                                        const m = String(now.getMinutes()).padStart(2, '0');
+                                        const s = String(now.getSeconds()).padStart(2, '0');
+                                        const ms = String(Math.floor(now.getMilliseconds()/10)).padStart(2, '0');
+                                        el.innerText = `${h}:${m}:${s}:${ms}`;
+                                    }
+                                }, 50);
+                            }
+                        </script>
+
                         <div class="cs-feature-magazine">
                             <div class="cs-fm-row">
-                                <div class="cs-fm-index">b.</div>
+                                <div class="cs-fm-index">c.</div>
                                 <div class="cs-fm-content">
                                     <div class="cs-fm-title">Couple Avatar</div>
                                     <div class="cs-fm-desc">Ask AI to pick matching pair</div>
@@ -743,6 +792,42 @@
                                     </div>
                                     <div class="cs-style-name">Raw Cut</div>
                                     <div class="cs-style-code">F</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="cs-divider">
+                            <span class="cs-divider-num">09</span>
+                            <span class="cs-divider-tag">Cognitive Synthesis</span>
+                            <div class="cs-divider-line"></div>
+                            <div class="cs-divider-dot"></div>
+                        </div>
+
+                        <div class="cs-style-card" style="padding: 16px; background: #fff; border: 1px solid rgba(0,0,0,0.05); border-radius: 8px; margin-bottom: 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <div style="font-family: 'Cormorant Garamond'; font-size: 18px; font-weight: 700; font-style: italic; color: #1a1816;">Memory Archive Protocol</div>
+                                <div style="width: 40px; height: 12px; background: repeating-linear-gradient(90deg, #111 0, #111 1px, transparent 1px, transparent 3px); opacity: 0.2;"></div>
+                            </div>
+
+                            <button class="btn-synth-manual" onclick="manualInitiateSynthesis()" style="width:100%; height:48px; background:#111; color:#fff; border:none; border-radius:4px; font-family:'Space Mono'; font-size:10px; letter-spacing:2px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; transition: 0.3s;">
+                                <span style="width:8px; height:8px; border:1px solid #fff; transform:rotate(45deg); display:inline-block;"></span>
+                                INITIATE SYNTHESIS
+                            </button>
+
+                            <div class="synth-status" style="display: flex; align-items: center; gap: 6px; margin-top: 10px;">
+                                <div style="width: 4px; height: 4px; background: #a68e6b; border-radius: 50%; box-shadow: 0 0 8px #a68e6b;"></div>
+                                <span class="status-text" style="font-family: 'Space Mono'; font-size: 7px; color: #8a8179; letter-spacing: 0.5px;">SYSTEM READY: WAITING FOR UPLINK...</span>
+                            </div>
+
+                            <div style="margin-top: 15px; display: flex; align-items: center; justify-content: space-between; padding-top: 12px; border-top: 1px dashed rgba(0,0,0,0.06);">
+                                <div>
+                                    <span style="font-family: 'Space Mono'; font-size: 9px; font-weight: 700; color: #1a1816; display: block;">AUTO-PROCESS</span>
+                                    <span style="font-size: 10px; color: #8a8179;">Threshold for AI summary</span>
+                                </div>
+                                <div style="display: flex; align-items: center; background: #f0f0ed; padding: 4px; border-radius: 4px; gap: 8px;">
+                                    <button onclick="let i=document.getElementById('autoSynthThreshold'); i.value=Math.max(5, parseInt(i.value)-5)" style="width:24px; height:24px; border:none; background:#fff; cursor:pointer; font-weight:bold; border-radius:2px;">-</button>
+                                    <input type="text" id="autoSynthThreshold" value="20" readonly style="width:30px; background:transparent; border:none; text-align:center; font-family:'Space Mono'; font-size:12px; font-weight:700; color:#111;">
+                                    <button onclick="let i=document.getElementById('autoSynthThreshold'); i.value=parseInt(i.value)+5" style="width:24px; height:24px; border:none; background:#fff; cursor:pointer; font-weight:bold; border-radius:2px;">+</button>
                                 </div>
                             </div>
                         </div>
