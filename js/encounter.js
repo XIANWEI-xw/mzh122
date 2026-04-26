@@ -385,18 +385,21 @@ async function enterEncStory(idx) {
     encProseContainer.innerHTML = '<p style="text-align:center;color:var(--enc-text-muted);font-style:italic;padding:40px 0;">Loading story...</p>';
 
     const savedStory = await loadEncStory(name);
-    if (savedStory) {
-        encProseContainer.innerHTML = savedStory;
-        setTimeout(() => {
-            const content = document.getElementById('enc-story-content');
-            content.scrollTo({ top: content.scrollHeight, behavior: 'smooth' });
-        }, 300);
-    } else {
-        encProseContainer.innerHTML = generateEncOpening(contact);
-        setTimeout(() => {
-            const content = document.getElementById('enc-story-content');
-            content.scrollTo({ top: 0, behavior: 'smooth' });
-        }, 300);
+    encProseContainer.innerHTML = savedStory || generateEncOpening(contact);
+
+    // 彻底修复加载历史记录后的滚动回弹与定位不准问题
+    const content = document.getElementById('enc-story-content');
+    if (content) {
+        const performScroll = () => {
+            content.scrollTop = content.scrollHeight;
+            if (encProseContainer.lastElementChild) {
+                encProseContainer.lastElementChild.scrollIntoView({ block: 'end', behavior: 'auto' });
+            }
+        };
+        // 立即执行一次，并在 DOM 稳定后再次校准，防止因图片或渲染延迟导致的滚动偏差
+        performScroll();
+        setTimeout(performScroll, 100);
+        setTimeout(performScroll, 400);
     }
 }
 
