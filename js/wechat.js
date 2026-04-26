@@ -738,6 +738,11 @@ async function callChatAPI(contact, messages) {
     }
 
     systemPrompt += contact.persona || 'You are a helpful AI assistant.';
+
+    // 注入 Vision 外貌描述
+    if (contact.visionDesc) {
+        systemPrompt += '\n\n[Visual Identity - from avatar scan]\n' + contact.visionDesc;
+    }
     
     if (contact.userMask && contact.userMask.trim() !== '') {
         systemPrompt += '\n\n[User Persona / Background]:\n' + contact.userMask;
@@ -953,10 +958,10 @@ function getChatAvatars() {
     const aiAvatar = currentChatContact.avatar 
         ? `<div class="wc-msg-avatar"><img src="${currentChatContact.avatar}"></div>` 
         : '<div class="wc-msg-avatar">🤖</div>';
-    
-    const settings = JSON.parse(localStorage.getItem('wcChatSettings_' + currentChatContact.name) || '{}');
-    const userAvatar = settings.userAvatar 
-        ? `<div class="wc-msg-avatar"><img src="${settings.userAvatar}"></div>` 
+
+    var myAv = window.wcMyAvatar || window.myAvatar || currentChatContact.userAvatar || '';
+    const userAvatar = myAv
+        ? `<div class="wc-msg-avatar"><img src="${myAv}"></div>`
         : '<div class="wc-msg-avatar" style="background:#ddd;">👤</div>';
     
     return { aiAvatar, userAvatar };
@@ -986,13 +991,20 @@ function renderChatMessages(isFirstLoad = false, oldScrollHeight = 0) {
     
     displayMsgs.forEach((msg, i) => {
         const realIndex = startIndex + i;
+
+        if (msg.hidden || msg.role === 'system') return;
+
+        if (msg.isNotice || msg.role === 'notice') {
+            html += msg.text;
+            return;
+        }
         
         let rowClasses = `wc-msg-row ${msg.role}`;
         if (msg.isQuoted) rowClasses += ' is-quoted';
         if (msg.isReply) rowClasses += ' is-reply';
 
         let bubbleClasses = msg.role === 'bot' ? 'wc-bubble-bot' : 'wc-bubble-user';
-        if (msg.visionUrl) bubbleClasses = 'wc-bubble-photo'; // 去除图片外层气泡
+        if (msg.visionUrl) bubbleClasses = 'wc-bubble-photo';
         if (msg.isQuoted) bubbleClasses += ' quoted';
 
         const quoteTagHtml = `<div class="quote-tag">QUOTED ↴</div>`;
@@ -1072,6 +1084,16 @@ function renderChatMessages(isFirstLoad = false, oldScrollHeight = 0) {
 
 function appendChatMessageToDOM(msg) {
     if (!currentChatContact) return;
+    if (msg.hidden || msg.role === 'system') return;
+
+    if (msg.isNotice || msg.role === 'notice') {
+        const container = document.getElementById('wcChatMessages');
+        if (container) {
+            container.insertAdjacentHTML('beforeend', msg.text);
+            container.scrollTop = container.scrollHeight;
+        }
+        return;
+    }
     const container = document.getElementById('wcChatMessages');
     if (!container) return;
     const { aiAvatar, userAvatar } = getChatAvatars();
@@ -1084,6 +1106,7 @@ function appendChatMessageToDOM(msg) {
 
     let bubbleClasses = msg.role === 'bot' ? 'wc-bubble-bot' : 'wc-bubble-user';
     if (msg.visionUrl) bubbleClasses = 'wc-bubble-photo'; // 去除图片外层气泡
+    if (msg.isCoupleCard) bubbleClasses = 'wc-bubble-card'; // 去除情头卡片外层气泡
     if (msg.isQuoted) bubbleClasses += ' quoted';
 
     const quoteTagHtml = `<div class="quote-tag">QUOTED ↴</div>`;

@@ -1874,6 +1874,14 @@
     border: none !important;
     box-shadow: none !important;
 }
+
+/* 去除情头卡片外层的默认气泡背景和边距 */
+.wc-bubble-card {
+    background: transparent !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+}
 /* ================= 独立回溯时间线 (长按消息下方出现) ================= */
 .wc-rewind-line-overlay {
     position: fixed;

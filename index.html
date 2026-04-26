@@ -26,6 +26,7 @@
     <link rel="stylesheet" href="css/cognition.css">
     <link rel="stylesheet" href="css/notification.css">
     <link rel="stylesheet" href="css/encounter.css">
+    <link rel="stylesheet" href="css/gallery.css">
     <link rel="stylesheet" href="css/api-monitor.css">
 
 </head>
@@ -544,6 +545,19 @@
                                     <div class="cs-lang-pill" onclick="selectBilingualLang(this, 'Spanish')">Español</div>
                                 </div>
                                 <input type="text" class="cs-lang-custom" id="wcCsCustomLang" placeholder="Or type custom language...">
+                            </div>
+                        </div>
+
+                        <div class="cs-feature-magazine">
+                            <div class="cs-fm-row">
+                                <div class="cs-fm-index">b.</div>
+                                <div class="cs-fm-content">
+                                    <div class="cs-fm-title">Couple Avatar</div>
+                                    <div class="cs-fm-desc">Ask AI to pick matching pair</div>
+                                </div>
+                                <div class="cs-fm-action">
+                                    <button class="cs-bg-btn" style="background:#d97a8d;color:#fff;border:none;padding:6px 14px;border-radius:6px;font-family:'Space Mono',monospace;font-size:8px;font-weight:700;letter-spacing:1px;cursor:pointer" onclick="galTriggerCouple()">Send</button>
+                                </div>
                             </div>
                         </div>
 
@@ -1374,6 +1388,129 @@
             </div>
         </div>
 
+        <!-- ================= Gallery App ================= -->
+        <div id="galleryApp">
+            <div class="gal-header">
+                <div class="gal-header-top">
+                    <div class="gal-back" onclick="closeGallery()"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></div>
+                </div>
+                <div class="gal-kicker"><div class="gal-kicker-dot"></div>Studio Zero</div>
+                <div class="gal-title">The <i>Gallery.</i></div>
+                <div class="gal-subtitle">Assets · Couple · Vision</div>
+            </div>
+            <div class="gal-stats">
+                <div class="gal-stat"><div class="gal-stat-num" id="galStatAvatars">0</div><div class="gal-stat-label">Avatars</div></div>
+                <div class="gal-stat"><div class="gal-stat-num">0</div><div class="gal-stat-label">Walls</div></div>
+                <div class="gal-stat"><div class="gal-stat-num">0</div><div class="gal-stat-label">Couples</div></div>
+            </div>
+            <div class="gal-tabs">
+                <div class="gal-tab active" onclick="switchGalTab(0,this)">All</div>
+                <div class="gal-tab" onclick="switchGalTab(1,this)">Avatars</div>
+                <div class="gal-tab" onclick="switchGalTab(2,this)">Walls</div>
+                <div class="gal-tab" onclick="switchGalTab(3,this)">Couple</div>
+                <div class="gal-tab" onclick="switchGalTab(4,this)">Vision</div>
+                <div class="gal-tab" onclick="switchGalTab(5,this)">Stickers</div>
+            </div>
+            <div class="gal-content">
+                <div class="gal-view active" id="galV0">
+                    <div class="gal-section-head"><div class="gal-section-title">Avatars</div><div class="gal-section-more" onclick="switchGalTab(1,document.querySelectorAll('.gal-tab')[1])">All →</div></div>
+                    <div class="gal-avatar-grid-wrap"><div class="gal-avatar-grid" id="galAvatarGrid"></div></div>
+                    <input type="file" id="galAvatarUpload" accept="image/*" style="display:none" onchange="galHandleAvatarUpload(event)">
+                    <input type="file" id="galWallUpload" accept="image/*" style="display:none" onchange="galHandleWallUpload(event)">
+                    <div class="gal-section-head"><div class="gal-section-title">Couple</div><div class="gal-section-more" onclick="switchGalTab(3,document.querySelectorAll('.gal-tab')[3])">All →</div></div>
+                    <div class="gal-empty"><div class="gal-empty-icon">❦</div><div class="gal-empty-desc">No couple avatars yet</div></div>
+                    <div class="gal-footer"><div class="gal-footer-diamond"></div><div class="gal-footer-text">Studio Zero · Gallery</div></div>
+                </div>
+                <div class="gal-view" id="galV1">
+                    <div class="gal-section-head"><div class="gal-section-title">Avatar Library</div><div class="gal-section-count" id="galAvatarCount">0</div></div>
+                    <div class="gal-avatar-grid-wrap"><div class="gal-avatar-grid" id="galAvatarGridFull"></div>
+                        <div class="gal-avatar-grid" style="margin-top:12px;">
+                            <div class="gal-avatar-item gal-avatar-add" onclick="document.getElementById('galAvatarUpload').click()">
+                                <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="gal-footer"><div class="gal-footer-diamond"></div><div class="gal-footer-text">Studio Zero · Avatars</div></div>
+                </div>
+                <div class="gal-view" id="galV2">
+                    <div class="gal-section-head"><div class="gal-section-title">Wallpapers</div><div class="gal-section-count" id="galWallCount">0</div></div>
+                    <div style="padding:0 24px;"><div class="gal-wall-card gal-wall-add" style="width:100%;height:120px;" onclick="document.getElementById('galWallUpload').click()"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><div class="gal-wall-add-text">Upload Wallpaper</div></div></div>
+                    <div id="galWallList" style="padding:0 24px;display:flex;flex-direction:column;gap:14px;margin-top:14px;"></div>
+                    <div class="gal-footer"><div class="gal-footer-diamond"></div><div class="gal-footer-text">Studio Zero · Walls</div></div>
+                </div>
+                <div class="gal-view" id="galV3">
+                    <div class="gal-section-head"><div class="gal-section-title">Couple Avatars</div><div class="gal-section-count">AI CURATED</div></div>
+                    <div class="gal-cp-intro"><div class="gal-cp-intro-icon">❦</div><div class="gal-cp-intro-title">AI-Selected Pairs</div><div class="gal-cp-intro-desc">Characters send you couple avatar picks in chat. Check your messages!</div></div>
+                    
+                    <!-- 新增历史记录容器 -->
+                    <div class="gal-section-head" style="padding:10px 24px 12px; display:flex; justify-content:space-between; align-items:center;">
+                        <div style="font-family:'Space Mono',monospace; font-size:9px; font-weight:700; color:#1a1816; letter-spacing:1px;">SCAN HISTORY</div>
+                        <div style="font-family:'Space Mono',monospace; font-size:7px; font-weight:700; color:#8a8179; letter-spacing:1px; padding:3px 8px; border:1px solid rgba(30,27,23,0.06); border-radius:10px;" id="galVisionLogCount">0 SCANS</div>
+                    </div>
+                    <div id="galVisionLog" style="padding:0 24px;"></div>
+
+                    <div class="gal-footer"><div class="gal-footer-diamond"></div><div class="gal-footer-text">Studio Zero · Couple</div></div>
+                </div>
+                <div class="gal-view" id="galV4">
+                    <div class="gal-section-head"><div class="gal-section-title">AI Vision</div><div class="gal-section-count">BETA</div></div>
+                    <div class="gal-v-card">
+                        <div class="gal-v-header">
+                            <div class="gal-v-left"><div class="gal-v-icon"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div><div><div class="gal-v-title">Vision Engine</div><div class="gal-v-sub">Auto-review schedule</div></div></div>
+                            <div class="gal-v-toggle on" onclick="this.classList.toggle('on')"></div>
+                        </div>
+                        <div class="gal-v-body">
+                            <div class="gal-v-time-row">
+                                <div class="gal-v-time-label">Every</div>
+                                <div class="gal-v-hm-group">
+                                    <div class="gal-v-hm-block"><input type="number" class="gal-v-hm-input" id="galVH" value="6" min="0" max="999"><span class="gal-v-hm-unit">h</span></div>
+                                    <div class="gal-v-hm-sep">:</div>
+                                    <div class="gal-v-hm-block"><input type="number" class="gal-v-hm-input" id="galVM" value="0" min="0" max="59" style="width:32px"><span class="gal-v-hm-unit">m</span></div>
+                                    <div class="gal-v-hm-btns"><div class="gal-v-hm-btn" onclick="galAdjVGlobal(1)"><svg viewBox="0 0 24 24"><path d="M18 15l-6-6-6 6"/></svg></div><div class="gal-v-hm-btn" onclick="galAdjVGlobal(-1)"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div></div>
+                                </div>
+                            </div>
+                            <div class="gal-v-presets">
+                                <div class="gal-v-preset" onclick="galSetVGlobal(0,30,this)">30M</div>
+                                <div class="gal-v-preset" onclick="galSetVGlobal(1,0,this)">1H</div>
+                                <div class="gal-v-preset" onclick="galSetVGlobal(3,0,this)">3H</div>
+                                <div class="gal-v-preset active" onclick="galSetVGlobal(6,0,this)">6H</div>
+                                <div class="gal-v-preset" onclick="galSetVGlobal(12,0,this)">12H</div>
+                                <div class="gal-v-preset" onclick="galSetVGlobal(24,0,this)">24H</div>
+                            </div>
+                            <div class="gal-v-countdown">
+                                <div class="gal-v-cd-ring"><svg viewBox="0 0 36 36"><circle class="gal-v-cd-ring-track" cx="18" cy="18" r="15"/><circle class="gal-v-cd-ring-progress" id="galVRing" cx="18" cy="18" r="15"/></svg><div class="gal-v-cd-ring-text" id="galVRT">6:00</div></div>
+                                <div class="gal-v-cd-info"><div class="gal-v-cd-label">Next Global Scan</div><div class="gal-v-cd-time" id="galVNT">Standby</div></div>
+                                <div class="gal-v-cd-status">Active</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="gal-v-card">
+                        <div style="padding:16px 18px 12px;display:flex;justify-content:space-between;align-items:center;">
+                            <div><div style="font-family:'Space Mono',monospace;font-size:9px;font-weight:700;color:#1a1816;">Per Character</div><div style="font-size:10px;color:#8a8179;margin-top:2px;">Override global timer</div></div>
+                        </div>
+                        <div style="padding:0 18px 18px;">
+                            <div class="gal-v-char-list" id="galVCharList"></div>
+                            <div class="gal-v-hint"><strong>H:M</strong> = custom hours:minutes. <strong>GLB</strong> = follows global. AI reviews avatar when timer hits zero.</div>
+                        </div>
+                    </div>
+                    <div class="gal-v-card">
+                        <div style="padding:16px 18px 12px;display:flex;justify-content:space-between;align-items:center;">
+                            <div><div style="font-family:'Space Mono',monospace;font-size:9px;font-weight:700;color:#1a1816;">Scan History</div><div style="font-size:10px;color:#8a8179;margin-top:2px;">Recent Vision activity</div></div>
+                            <div style="font-family:'Space Mono',monospace;font-size:7px;font-weight:700;color:#8a8179;letter-spacing:1px;padding:3px 8px;border:1px solid rgba(30,27,23,0.06);border-radius:10px;" id="galVisionLogCount">0 SCANS</div>
+                        </div>
+                        <div style="padding:0 18px 18px;">
+                            <div id="galVisionLog"></div>
+                        </div>
+                    </div>
+                    <div class="gal-footer"><div class="gal-footer-diamond"></div><div class="gal-footer-text">Studio Zero · Vision</div></div>
+                </div>
+                <div class="gal-view" id="galV5">
+                    <div class="gal-empty"><div class="gal-empty-icon">❋</div><div class="gal-empty-title">Coming Soon</div><div class="gal-empty-desc">Sticker packs in a future update</div></div>
+                    <div class="gal-footer"><div class="gal-footer-diamond"></div><div class="gal-footer-text">Studio Zero · Stickers</div></div>
+                </div>
+            </div>
+            <div class="gal-toast" id="galToast"></div>
+        </div>
+
         <!-- ================= 4. 世界书 App (Archive) ================= -->
         <div class="app-screen" id="worldbookApp">
             <div class="wb-header">
@@ -1627,6 +1764,7 @@
     <script src="js/cognition.js"></script>
     <script src="js/notification.js"></script>    
     <script src="js/encounter.js"></script>
+    <script src="js/gallery.js"></script>
     <script src="js/api-monitor.js"></script>
 
     <!-- 计时悬浮球 -->
