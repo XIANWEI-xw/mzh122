@@ -387,14 +387,17 @@ async function enterEncStory(idx) {
     const savedStory = await loadEncStory(name);
     if (savedStory) {
         encProseContainer.innerHTML = savedStory;
+        setTimeout(() => {
+            const content = document.getElementById('enc-story-content');
+            content.scrollTo({ top: content.scrollHeight, behavior: 'smooth' });
+        }, 300);
     } else {
         encProseContainer.innerHTML = generateEncOpening(contact);
+        setTimeout(() => {
+            const content = document.getElementById('enc-story-content');
+            content.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 300);
     }
-
-    setTimeout(() => {
-        const content = document.getElementById('enc-story-content');
-        content.scrollTo({ top: content.scrollHeight, behavior: 'smooth' });
-    }, 300);
 }
 
 // ===== 退出故事（自动保存进度到 IndexedDB）=====
