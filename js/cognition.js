@@ -127,25 +127,25 @@ function renderCogMemories() {
         
         if (m.type === 'CORE') {
             html = `
-            <div class="cog-card-core cog-mem-card" style="animation-delay: ${index * 0.05}s" onclick="openCogEditor(${m.id})">
-                <div class="cog-core-top">
+            <div class="cog-card-core cog-mem-card" style="animation-delay: ${index * 0.05}s; display: flex; flex-direction: column;" onclick="openCogEditor(${m.id})">
+                <div class="cog-core-top" style="flex-shrink: 0;">
                     <div class="cog-core-badge">Core Memory</div>
                     <div class="cog-core-num">${numStr}</div>
                 </div>
-                <div class="cog-core-text">${m.text}</div>
-                <div class="cog-core-footer">
+                <div class="cog-core-text" style="flex: 1; padding: 12px 0;">${m.text}</div>
+                <div class="cog-core-footer" style="flex-shrink: 0; margin-top: auto;">
                     <div class="cog-core-date">${m.date}</div>
                     <div class="cog-core-icon"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></div>
                 </div>
             </div>`;
         } else if (m.type === 'HIGH') {
             html = `
-            <div class="cog-card-high cog-mem-card" style="animation-delay: ${index * 0.05}s" onclick="openCogEditor(${m.id})">
-                <div class="cog-high-top">
+            <div class="cog-card-high cog-mem-card" style="animation-delay: ${index * 0.05}s; display: flex; flex-direction: column;" onclick="openCogEditor(${m.id})">
+                <div class="cog-high-top" style="flex-shrink: 0;">
                     <div class="cog-high-badge">HIGH PRIORITY</div>
                 </div>
-                <div class="cog-high-text">${m.text}</div>
-                <div class="cog-high-footer">
+                <div class="cog-high-text" style="flex: 1; padding: 10px 0;">${m.text}</div>
+                <div class="cog-high-footer" style="flex-shrink: 0; margin-top: auto;">
                     <div class="cog-high-date">${m.date}</div>
                     <div class="cog-high-num">NO.${numStr}</div>
                 </div>

@@ -28,6 +28,33 @@
     <link rel="stylesheet" href="css/encounter.css">
     <link rel="stylesheet" href="css/gallery.css">
     <link rel="stylesheet" href="css/api-monitor.css">
+    <style>
+        /* 修复记忆库卡片挤压问题 */
+        #cogMemList {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding: 20px;
+            height: auto;
+            overflow-y: visible;
+        }
+        .cog-mem-card {
+            flex-shrink: 0 !important; /* 禁止卡片被压缩 */
+            width: 100% !important;
+            height: auto !important; /* 高度随内容自适应 */
+            min-height: 100px;
+            box-sizing: border-box;
+        }
+        .cog-card-core {
+            min-height: 140px; /* 给核心记忆预留更多空间 */
+        }
+        .cog-core-text, .cog-high-text, .cog-trace-text {
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            overflow: visible !important;
+            line-height: 1.5;
+        }
+    </style>
 
 </head>
 <body class="iphone-frame-body" style="font-family: 'Nunito', -apple-system, sans-serif;">
