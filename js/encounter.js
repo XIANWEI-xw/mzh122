@@ -52,8 +52,8 @@ function initEncounterDOM() {
                         <div class="enc-story-tag enc-intimate-tag">✦ Sensory Sync: ${stateText} (${val}%) ✦</div>
                     `);
                 }
-                const content = document.getElementById('enc-story-content');
-                if (content) content.scrollTo({ top: 99999, behavior: 'smooth' });
+                const encClimaxScrollTarget = document.getElementById('enc-story-content');
+                if (encClimaxScrollTarget) encClimaxScrollTarget.scrollTop = encClimaxScrollTarget.scrollHeight - encClimaxScrollTarget.clientHeight;
                 setTimeout(() => generateEncAIResponse(), 800);
             }
         });
@@ -388,35 +388,25 @@ async function enterEncStory(idx) {
     const content = document.getElementById('enc-story-content');
 
     if (content) {
-        // 1. 彻底禁用平滑滚动和浏览器自动锚定，防止回弹
         content.style.scrollBehavior = 'auto';
-        content.style.overflowAnchor = 'none'; 
-        
-        // 2. 注入内容
+        content.style.overflowAnchor = 'none';
+
         encProseContainer.innerHTML = savedStory || generateEncOpening(contact);
 
-        // 3. 定义强力触底函数
-        const forceJump = () => {
-            content.scrollTop = content.scrollHeight;
-            // 兼容性二次保险
-            if (encProseContainer.lastElementChild) {
-                encProseContainer.lastElementChild.scrollIntoView({ block: 'end', behavior: 'auto' });
-            }
+        const scrollToBottom = () => {
+            content.scrollTop = content.scrollHeight - content.clientHeight;
         };
 
-        // 4. 在渲染周期的不同阶段强制触底，消除所有抖动
-        forceJump();
-        requestAnimationFrame(forceJump);
-        
-        // 5. 针对可能存在的图片或复杂排版，在短时间内持续锁定
-        let count = 0;
-        const timer = setInterval(() => {
-            forceJump();
-            if (++count > 5) {
-                clearInterval(timer);
-                content.style.scrollBehavior = 'smooth'; // 稳定后恢复平滑滚动
-            }
-        }, 100);
+        scrollToBottom();
+        requestAnimationFrame(scrollToBottom);
+        setTimeout(scrollToBottom, 50);
+        setTimeout(scrollToBottom, 150);
+        setTimeout(scrollToBottom, 300);
+        setTimeout(scrollToBottom, 500);
+
+        setTimeout(() => {
+            content.style.scrollBehavior = 'smooth';
+        }, 600);
     }
 }
 
@@ -556,7 +546,8 @@ function generateEncAIResponse() {
 
     const loadingHtml = `<div class="enc-prose-divider">· · ·</div><div class="enc-story-block ai-block enc-loading-block"><p style="opacity:.4;font-style:italic;">${name} is composing...</p></div>`;
     encProseContainer.insertAdjacentHTML('beforeend', loadingHtml);
-    document.getElementById('enc-story-content').scrollTo({ top: 99999, behavior: 'smooth' });
+    const encScrollContent = document.getElementById('enc-story-content');
+    if (encScrollContent) encScrollContent.scrollTop = encScrollContent.scrollHeight - encScrollContent.clientHeight;
 
     const settings = JSON.parse(localStorage.getItem('systemSettings') || '{}');
     const apiUrl = settings.apiUrl;
@@ -586,7 +577,8 @@ function generateEncAIResponse() {
                     </div>
                 </div>
             `);
-            document.getElementById('enc-story-content').scrollTo({ top: 99999, behavior: 'smooth' });
+            const encFallbackScroll = document.getElementById('enc-story-content');
+            if (encFallbackScroll) encFallbackScroll.scrollTop = encFallbackScroll.scrollHeight - encFallbackScroll.clientHeight;
         }, 1500);
     }
 }
@@ -909,10 +901,10 @@ async function callEncAI(apiUrl, apiToken, apiModel) {
                 </div>
             `);
 
-            // 自动保存进度到 IndexedDB
             saveEncStory();
         }
-        document.getElementById('enc-story-content').scrollTo({ top: 99999, behavior: 'smooth' });
+        const encAiScrollTarget = document.getElementById('enc-story-content');
+        if (encAiScrollTarget) encAiScrollTarget.scrollTop = encAiScrollTarget.scrollHeight - encAiScrollTarget.clientHeight;
         saveEncStory();
 
     } catch (e) {
@@ -1055,7 +1047,8 @@ function sendEncAction() {
     `);
     encUserInput.value = '';
     encUserInput.style.height = 'auto';
-    document.getElementById('enc-story-content').scrollTo({ top: 99999, behavior: 'smooth' });
+    const encUserScrollTarget = document.getElementById('enc-story-content');
+    if (encUserScrollTarget) encUserScrollTarget.scrollTop = encUserScrollTarget.scrollHeight - encUserScrollTarget.clientHeight;
 
     saveEncStory();
 
