@@ -381,37 +381,42 @@ async function enterEncStory(idx) {
     clearInterval(encHeartInterval);
     encHeartContainer.innerHTML = '';
 
-    // 从 IndexedDB 加载故事（无限空间，不丢数据）
+    // 从 IndexedDB 加载故事
     encProseContainer.innerHTML = '<p style="text-align:center;color:var(--enc-text-muted);font-style:italic;padding:40px 0;">Loading story...</p>';
 
     const savedStory = await loadEncStory(name);
     const content = document.getElementById('enc-story-content');
 
     if (content) {
-        // 1. 立即锁定滚动行为为 auto，防止平滑滚动引起的回弹抖动
+        // 1. 彻底禁用平滑滚动和浏览器自动锚定，防止回弹
         content.style.scrollBehavior = 'auto';
+        content.style.overflowAnchor = 'none'; 
+        
+        // 2. 注入内容
         encProseContainer.innerHTML = savedStory || generateEncOpening(contact);
 
-        // 2. 定义绝对触底函数
-        const forceToBottom = () => {
-            content.scrollTop = content.scrollHeight + 10000;
-            const last = encProseContainer.lastElementChild;
-            if (last) last.scrollIntoView({ block: 'end', behavior: 'auto' });
-        };
-
-        // 3. 核心修复：在接下来 1000ms 内，随每一帧渲染强制锁定底部
-        // 这能彻底对抗因图片加载、DOM 插入或浏览器布局抖动导致的回弹
-        let scrollLockStart = performance.now();
-        const lockScrollToBottom = (now) => {
-            forceToBottom();
-            if (now - scrollLockStart < 1000) {
-                requestAnimationFrame(lockScrollToBottom);
-            } else {
-                // 4. 彻底稳定后，恢复平滑滚动供后续使用
-                content.style.scrollBehavior = 'smooth';
+        // 3. 定义强力触底函数
+        const forceJump = () => {
+            content.scrollTop = content.scrollHeight;
+            // 兼容性二次保险
+            if (encProseContainer.lastElementChild) {
+                encProseContainer.lastElementChild.scrollIntoView({ block: 'end', behavior: 'auto' });
             }
         };
-        requestAnimationFrame(lockScrollToBottom);
+
+        // 4. 在渲染周期的不同阶段强制触底，消除所有抖动
+        forceJump();
+        requestAnimationFrame(forceJump);
+        
+        // 5. 针对可能存在的图片或复杂排版，在短时间内持续锁定
+        let count = 0;
+        const timer = setInterval(() => {
+            forceJump();
+            if (++count > 5) {
+                clearInterval(timer);
+                content.style.scrollBehavior = 'smooth'; // 稳定后恢复平滑滚动
+            }
+        }, 100);
     }
 }
 
