@@ -388,32 +388,30 @@ async function enterEncStory(idx) {
     const content = document.getElementById('enc-story-content');
 
     if (content) {
-        // 1. 暂时禁用平滑滚动，防止加载时的回弹动画
+        // 1. 立即锁定滚动行为为 auto，防止平滑滚动引起的回弹抖动
         content.style.scrollBehavior = 'auto';
-        
-        // 2. 注入内容
         encProseContainer.innerHTML = savedStory || generateEncOpening(contact);
-        
-        // 3. 定义强制触底函数
-        const forceBottom = () => {
-            content.scrollTop = 2000000; // 赋予一个极大值确保触底
+
+        // 2. 定义绝对触底函数
+        const forceToBottom = () => {
+            content.scrollTop = content.scrollHeight + 10000;
             const last = encProseContainer.lastElementChild;
             if (last) last.scrollIntoView({ block: 'end', behavior: 'auto' });
         };
 
-        // 4. 执行多轮校准，应对可能存在的图片加载高度变化
-        forceBottom();
-        
-        let scrollAttempts = 0;
-        const scrollTimer = setInterval(() => {
-            forceBottom();
-            scrollAttempts++;
-            if (scrollAttempts > 6) {
-                clearInterval(scrollTimer);
-                // 5. 稳定后恢复平滑滚动，供后续 AI 生成时使用
+        // 3. 核心修复：在接下来 1000ms 内，随每一帧渲染强制锁定底部
+        // 这能彻底对抗因图片加载、DOM 插入或浏览器布局抖动导致的回弹
+        let scrollLockStart = performance.now();
+        const lockScrollToBottom = (now) => {
+            forceToBottom();
+            if (now - scrollLockStart < 1000) {
+                requestAnimationFrame(lockScrollToBottom);
+            } else {
+                // 4. 彻底稳定后，恢复平滑滚动供后续使用
                 content.style.scrollBehavior = 'smooth';
             }
-        }, 100);
+        };
+        requestAnimationFrame(lockScrollToBottom);
     }
 }
 
