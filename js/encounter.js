@@ -385,21 +385,35 @@ async function enterEncStory(idx) {
     encProseContainer.innerHTML = '<p style="text-align:center;color:var(--enc-text-muted);font-style:italic;padding:40px 0;">Loading story...</p>';
 
     const savedStory = await loadEncStory(name);
-    encProseContainer.innerHTML = savedStory || generateEncOpening(contact);
-
-    // 彻底修复加载历史记录后的滚动回弹与定位不准问题
     const content = document.getElementById('enc-story-content');
+
     if (content) {
-        const performScroll = () => {
-            content.scrollTop = content.scrollHeight;
-            if (encProseContainer.lastElementChild) {
-                encProseContainer.lastElementChild.scrollIntoView({ block: 'end', behavior: 'auto' });
-            }
+        // 1. 暂时禁用平滑滚动，防止加载时的回弹动画
+        content.style.scrollBehavior = 'auto';
+        
+        // 2. 注入内容
+        encProseContainer.innerHTML = savedStory || generateEncOpening(contact);
+        
+        // 3. 定义强制触底函数
+        const forceBottom = () => {
+            content.scrollTop = 2000000; // 赋予一个极大值确保触底
+            const last = encProseContainer.lastElementChild;
+            if (last) last.scrollIntoView({ block: 'end', behavior: 'auto' });
         };
-        // 立即执行一次，并在 DOM 稳定后再次校准，防止因图片或渲染延迟导致的滚动偏差
-        performScroll();
-        setTimeout(performScroll, 100);
-        setTimeout(performScroll, 400);
+
+        // 4. 执行多轮校准，应对可能存在的图片加载高度变化
+        forceBottom();
+        
+        let scrollAttempts = 0;
+        const scrollTimer = setInterval(() => {
+            forceBottom();
+            scrollAttempts++;
+            if (scrollAttempts > 6) {
+                clearInterval(scrollTimer);
+                // 5. 稳定后恢复平滑滚动，供后续 AI 生成时使用
+                content.style.scrollBehavior = 'smooth';
+            }
+        }, 100);
     }
 }
 

@@ -1082,6 +1082,29 @@ function renderChatMessages(isFirstLoad = false, oldScrollHeight = 0) {
     }
 }
 
+window.sendWcMomentTicket = function() {
+    const text = prompt("Enter text for the Moment Ticket:", "");
+    if (!text || !text.trim() || !currentChatContact) return;
+    
+    if (typeof renderMomentTicket !== 'function') {
+        alert("Moment Ticket Engine not loaded.");
+        return;
+    }
+
+    const ticketHtml = renderMomentTicket(text.trim());
+    const newMsg = { 
+        role: 'user', 
+        text: ticketHtml, 
+        isMoment: true,
+        time: getCurrentTime() 
+    };
+
+    chatMessages[currentChatContact.name].push(newMsg);
+    saveWeChatData();
+    appendChatMessageToDOM(newMsg);
+    closeWcPlusMenu();
+};
+
 function appendChatMessageToDOM(msg) {
     if (!currentChatContact) return;
     if (msg.hidden || msg.role === 'system') return;
@@ -1105,7 +1128,7 @@ function appendChatMessageToDOM(msg) {
     if (msg.isReply) rowClasses += ' is-reply';
 
     let bubbleClasses = msg.role === 'bot' ? 'wc-bubble-bot' : 'wc-bubble-user';
-    if (msg.visionUrl) bubbleClasses = 'wc-bubble-photo'; // 去除图片外层气泡
+    if (msg.visionUrl || msg.isMoment) bubbleClasses = 'wc-bubble-photo'; // 去除图片或小票外层气泡
     if (msg.isCoupleCard) bubbleClasses = 'wc-bubble-card'; // 去除情头卡片外层气泡
     if (msg.isQuoted) bubbleClasses += ' quoted';
 
